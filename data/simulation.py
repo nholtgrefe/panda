@@ -7,20 +7,20 @@ if __name__ == "__main__":
 
     start = time.perf_counter()
 
+    # Path to input file
+    folder1 = "/path/to/folder/"
+    file_path1 = folder1 + "simulated_networks.txt"
+    
     # Path to output file
-    folder1 = "/home/nholtgreve/Documents/Projects/Phylogenetics/Panda MAPPD/simulations/"
-    file_path1 = folder1 + "simulation3.txt"
-
-    # Path to newick file
-    folder2 = "/home/nholtgreve/Documents/Projects/Phylogenetics/Panda MAPPD/SiPhySimulations/"
-    file_path2 = folder2 + "simulated_networks3.txt"
+    folder2 = "/path/to/folder/"
+    file_path2 = folder2 + "experiment1_result.txt"
 
     # Load as dataframe (tab-delimited)
-    df = pd.read_csv(file_path2, sep=" ", header=0)
+    df = pd.read_csv(file_path1, sep=" ", header=0)
 
     # open a results file once, before the loop
-    if not os.path.exists(file_path1):
-        with open(file_path1, "w", newline="") as f:
+    if not os.path.exists(file_path2):
+        with open(file_path2, "w", newline="") as f:
             writer = csv.writer(f, delimiter="\t")
 
             # Header row
@@ -42,6 +42,7 @@ if __name__ == "__main__":
                     'diversity1',
                     'diversity2',
                     'diversity3']
+            
             writer.writerow(header)
 
             for _, row in df.iterrows():
@@ -120,9 +121,6 @@ if __name__ == "__main__":
 
                 # Write one row to file
                 writer.writerow(info)
-
-                # Print update
-                #print(info)
 
     end = time.perf_counter()
     print(f"Finished in {end-start} seconds.")
