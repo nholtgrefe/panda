@@ -6,7 +6,7 @@ This folder contains the biological datasets, generated networks, simulated sequ
 The results in the paper and in this repository were all obtained using version `1.0.0` of `phypanda`.
 
 ## Simulations
-The phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `simulate_networks.R`, using the `SciPhyNetwork` package [2]. In particular, the script exhaustively simulates networks with the function `sim.bdh.taxa.ssa`. 
+The phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `simulate_networks.R`, using the `SciPhyNetwork` package [1]. The script exhaustively uses the function `sim.bdh.taxa.ssa` to simulate a birth-death-hybridization model until there are 100 $n$-leaf level-$\ell$ networks for each $n \in \{20, 50, 100, 200\}$ and $\ell \in \{0, \ldots, 15\}$. The hybridization rates $\nu$ are sampled uniformly at random from the interval $[0, 2/n]$, since this ensured the level of the networks were roughly in the right range.
 
 The simulated networks are in the file `simulated_networks.txt` (using the `eNewick` format). The Python script that applies PaNDA on these networks is in the file `experiment1.py`. A table containing the results of this experiment is in the file `experiment1_results.txt`.
 
