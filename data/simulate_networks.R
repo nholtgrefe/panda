@@ -272,7 +272,7 @@ perform_simulation <- function(number_of_taxa_range=c(25, 50, 100, 200),
 main <- function() {
   
   # Output file
-  folder <- "/home/nholtgreve/Documents/Projects/Phylogenetics/Panda MAPPD/SiPhySimulations/"
+  folder <- "/path/to/folder/"
   output_file <- file.path(folder, "simulated_networks3.txt")
   
   # Remove output file if it exists
