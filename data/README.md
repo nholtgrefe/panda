@@ -6,10 +6,10 @@ This folder contains the biological datasets, generated networks, simulated sequ
 The results in the paper and in this repository were all obtained using version `1.0.0` of `phypanda`.
 
 ## Simulations
-The phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `simulate_networks.R`, using the `SciPhyNetwork` package [2]. The simulated networks are in the file `simulated_networks.txt` (using the `eNewick` format).
+The phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `simulate_networks.R`, using the `SciPhyNetwork` package [2]. The simulated networks are in the file `simulated_networks.txt` (using the `eNewick` format). The Python script that applies PaNDA on these networks is in the file `experiment1.py`. A table containing the results of this experiment is in the file `experiment1_results.txt`.
 
 ## Xiphophorus
-The Xiphophorus network in Figure 5 of the paper, originally from [1], is in the file `xiphophorus_network.txt` (in `eNewick` format). The Python script that applies PaNDA on this network is in the file `xiphophorus.py`.
+The Xiphophorus network in Figure 5 of the paper, originally from [1], is in the file `xiphophorus_network.txt` (in `eNewick` format). The Python script that applies PaNDA on this network is in the file `experiment2.py`.
 
 ## References
 
