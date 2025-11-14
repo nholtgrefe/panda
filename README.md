@@ -1,2 +1,18 @@
-# panda
-Efficient Optimization of Phylogenetic Diversity in Networks
+# PaNDA
+This is the repository corresponding to the paper: 
+> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
+> *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
+
+## Using the PaNDA
+The **PaNDA** software is easy to install and can either be run with a graphical user-interface (GUI) for inexperienced programmers, or as part of our Python package `phypanda` which allows for more functionality (and is therefore recommended if the user is experienced with Python). For an installation guide and a more detailed overview of the features (including screenshots for the GUI), please click on the links below to visit the `README.md` files in the respective folders:
+- [gui](https://github.com/nholtgrefe/squirrel/tree/main/gui), for the graphical user-interface (Windows and Linux only);
+- [physquirrel](https://github.com/nholtgrefe/squirrel/tree/main/physquirrel), for the corresponding Python package.
+
+To test out the GUI or the Python package, we recommend using the small sequence alignment in the file [`hiv.fasta`](https://github.com/nholtgrefe/squirrel/blob/main/data/hiv/hiv.fasta).
+## Supplementary data and scripts
+The biological data sets, simulation results and used Python scripts from the paper are all in the folder [data](https://github.com/nholtgrefe/squirrel/tree/main/data). For a more detailed explanation of these files (including sources for the biological data), see the `README.md` file in the folder.
+
+## Citation
+If you use any of the code in this repository, please cite the corresponding paper:
+> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
+> *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
