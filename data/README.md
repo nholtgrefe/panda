@@ -19,5 +19,5 @@ The `eNewick` representation of the Xiphophorus network in Figure 5 of the paper
 
 ## References
 
-1. P. Bastide, C. Solís-Lemus, R. Kriebel, K. William Sparks, and C. Ané. Phylogenetic Comparative Methods on Phylogenetic Networks with Reticulations. Systematic Biology, 67(5):800–820, 2018. DOI: [10.1093/sysbio/syy033](https://doi.org/10.1093/sysbio/syy033).
-2. J. A. Justison, C. Solís-Lemus, and T. A. Heath. SiPhyNetwork: An R package for simulating phylogenetic networks. Methods in Ecology and Evolution, 14(7):1687–1698, 2023. DOI:[10.1111/2041-210X.14116]( https://doi.org/10.1111/2041-210X.14116).
+1. J. A. Justison, C. Solís-Lemus, and T. A. Heath. SiPhyNetwork: An R package for simulating phylogenetic networks. Methods in Ecology and Evolution, 14(7):1687–1698, 2023. DOI:[10.1111/2041-210X.14116]( https://doi.org/10.1111/2041-210X.14116).
+2. P. Bastide, C. Solís-Lemus, R. Kriebel, K. William Sparks, and C. Ané. Phylogenetic Comparative Methods on Phylogenetic Networks with Reticulations. Systematic Biology, 67(5):800–820, 2018. DOI: [10.1093/sysbio/syy033](https://doi.org/10.1093/sysbio/syy033).
