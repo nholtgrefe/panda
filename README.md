@@ -9,8 +9,9 @@ The **PaNDA** software is easy to install and can either be run with a graphical
 - [physquirrel](https://github.com/nholtgrefe/squirrel/tree/main/physquirrel), for the corresponding Python package.
 
 To test out the GUI or the Python package, we recommend using the small sequence alignment in the file [`hiv.fasta`](https://github.com/nholtgrefe/squirrel/blob/main/data/hiv/hiv.fasta).
+
 ## Supplementary data and scripts
-The biological data sets, simulation results and used Python scripts from the paper are all in the folder [data](https://github.com/nholtgrefe/squirrel/tree/main/data). For a more detailed explanation of these files (including sources for the biological data), see the `README.md` file in the folder.
+The simulation results, data sets and used scripts from the experiments in the paper are all in the folder [data](https://github.com/nholtgrefe/squirrel/tree/main/data). For a more detailed explanation of these files, see the `README.md` file in the folder.
 
 ## Citation
 If you use any of the code in this repository, please cite the corresponding paper:
