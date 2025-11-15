@@ -3,7 +3,7 @@ This is the repository corresponding to the paper:
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
 
-## Using the PaNDA
+## Using PaNDA
 The **PaNDA** software is easy to install and can either be run with a graphical user-interface (GUI) for inexperienced programmers, or as part of our Python package `phypanda` which allows for more functionality (and is therefore recommended if the user is experienced with Python). For an installation guide and a more detailed overview of the features (including screenshots for the GUI), please click on the links below to visit the `README.md` files in the respective folders:
 - [gui](https://github.com/nholtgrefe/squirrel/tree/main/gui), for the graphical user-interface (Windows and Linux only);
 - [physquirrel](https://github.com/nholtgrefe/squirrel/tree/main/physquirrel), for the corresponding Python package.
