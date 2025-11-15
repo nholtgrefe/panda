@@ -5,8 +5,8 @@ This folder contains the datasets and scripts supporting the experiments in the 
 
 The results in the paper and in this repository were all obtained using version `1.0.0` of `phypanda`.
 
-## Simulations - Experiment 1
-The phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `exp1_simulate_networks.R`, using the `SciPhyNetwork` package [1]. The script exhaustively uses the function `sim.bdh.taxa.ssa` to simulate a birth-death-hybridization model until there are 100 $n$-leaf level-$l$ networks for each $n \in \{20, 50, 100, 200\}$ and $l \in \{0, \ldots, 15\}$. The speciation rate $\lambda$ was set at 1.0 and the extinction rate $\mu$ at 0.2, as in the `SciPhyNetwork` documentation. The hybridization rates $\nu$ were sampled uniformly at random from the interval $[0, 2/n]$, since this ensured the level of the networks were roughly in the right range.
+## Experiment 1 - Simulations
+The directed phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `exp1_simulate_networks.R`, using the `SciPhyNetwork` package [1]. The script exhaustively uses the function `sim.bdh.taxa.ssa` to simulate a birth-death-hybridization model until there are 100 $n$-leaf level-$l$ networks for each $n \in \{20, 50, 100, 200\}$ and $l \in \{0, \ldots, 15\}$. The speciation rate $\lambda$ was set at 1.0 and the extinction rate $\mu$ at 0.2, as in the `SciPhyNetwork` documentation. The hybridization rates $\nu$ were sampled uniformly at random from the interval $[0, 2/n]$, since this ensured the level of the networks were roughly in the right range.
 
 The 6400 resulting simulated networks are in the file `exp1_simulated_networks.csv`. The file contains a header line and one line for each network. Each line contains the following information: id-number, number of leaves, level, hybridization rate $\nu$, extinction rate $\mu$, speciation rate $\lambda$, the `eNewick` string of the network. 
 
@@ -14,8 +14,10 @@ The Python script that applies PaNDA to solve MAPPD on these networks is in the 
 
 The results of the experiment are in the file `exp1_results.csv`, containing a header line, and one line per network. Each line contains the following information: id-number (corresponding to the input networks), number of leaves,	scanwidth, level, number of reticulation vertices, time to parse the eNewick string, time to initialize the scanwidth computation, time to compute the scanwidth, time to create a tree-extension, time to solve MAPPD for k1, k2 and k3, computed diversity score for k1, k2, and k3. All computations were performed on laptop with Debian 12 on a single core of an Intel® Core™ i5-1245U Processor.
 
-## Biological data - Experiment 2
-The `eNewick` representation of the Xiphophorus network in Figure 5 of the paper, originally from [1], is in the file `xiphophorus_network.txt`. The Python script that applies PaNDA to this network is in the file `experiment2.py`.
+## Experiment 2 - Biological data
+The `eNewick` representation of the directed phylogenetic network on a set of 23 Xiphophorus species (Figure 5 in the paper, orginally from [1]), is in the file `exp2_xiphophorus_network.txt`.
+
+The Python script that applies PaNDA to solve MAPPD on this network is in the file `exp2_solve_MAPPD.py`.
 
 ## References
 
