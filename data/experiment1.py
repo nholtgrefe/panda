@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     # Path to input file
     folder1 = "/path/to/folder/"
-    file_path1 = folder1 + "simulated_networks.txt"
+    file_path1 = folder1 + "simulated_networks.csv"
     
     # Path to output file
     folder2 = "/path/to/folder/"
