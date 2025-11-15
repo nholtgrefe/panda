@@ -9,11 +9,11 @@ if __name__ == "__main__":
 
     # Path to input file
     folder1 = "/path/to/folder/"
-    file_path1 = folder1 + "simulated_networks.csv"
+    file_path1 = folder1 + "exp1_simulated_networks.csv"
     
     # Path to output file
     folder2 = "/path/to/folder/"
-    file_path2 = folder2 + "experiment1_result.csv"
+    file_path2 = folder2 + "exp1_results.csv"
 
     # Load as dataframe (tab-delimited)
     df = pd.read_csv(file_path1, sep=" ", header=0)
