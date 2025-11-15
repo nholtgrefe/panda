@@ -15,7 +15,7 @@ The Python script that applies PaNDA to solve MAPPD on these networks is in the 
 The results of the experiment are in the file `exp1_results.csv`, containing a header line, and one line per network. Each line contains the following information: id-number (corresponding to the input networks), number of leaves,	scanwidth, level, number of reticulation vertices, time to parse the eNewick string, time to initialize the scanwidth computation, time to compute the scanwidth, time to create a tree-extension, time to solve MAPPD for k1, k2 and k3, computed diversity score for k1, k2, and k3. All computations were performed on laptop with Debian 12 on a single core of an Intel® Core™ i5-1245U Processor.
 
 ## Experiment 2 - Biological data
-The `eNewick` representation of the directed phylogenetic network on a set of 23 Xiphophorus species (Figure 5 in the paper, orginally from [1]), is in the file `exp2_xiphophorus_network.txt`.
+The `eNewick` representation of the directed phylogenetic network on a set of 23 Xiphophorus species (Figure 5 in the paper, orginally from [2]), is in the file `exp2_xiphophorus_network.txt`.
 
 The Python script that applies PaNDA to solve MAPPD on this network is in the file `exp2_solve_MAPPD.py`.
 
