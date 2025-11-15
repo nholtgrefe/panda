@@ -1,5 +1,5 @@
 # Supplementary data and scripts
-This folder contains the biological datasets, generated networks, simulated sequences, python scripts and results of the simulation experiments of the paper:
+This folder contains the datasets and scripts supporting the experiments in the paper:
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag*.
 
