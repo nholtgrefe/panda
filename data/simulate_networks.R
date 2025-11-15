@@ -273,7 +273,7 @@ main <- function() {
   
   # Output file
   folder <- "/path/to/folder/"
-  output_file <- file.path(folder, "simulated_networks3.txt")
+  output_file <- file.path(folder, "simulated_networks.csv")
   
   # Remove output file if it exists
   #if (file.exists(output_file)) return()
