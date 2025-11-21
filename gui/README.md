@@ -38,6 +38,11 @@ The GUI is available for Windows and Linux [here](https://drive.google.com/drive
 <img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/f039b2b0-098c-4946-ba8c-8d8f161af0cc" />
 
 
+### Alg
+
+
+<img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/03eea5a6-ed9c-481d-a1de-958a833c84e6" />
+
 ### Algorithm Window
 - `Reconstruct networks`: Runs the **Squirrel** algorithm (and possibly the **$\delta$-heuristic**) to reconstruct a phylogenetic level-1 network from the set of tf-quarnets or the sequence alignment.
 - `Algorithm settings`: Allows the user to:
