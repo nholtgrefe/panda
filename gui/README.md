@@ -1,6 +1,6 @@
 # Graphical User-Interface (GUI) for PaNDA
 
-The **PaNDA-GUI** is a Graphical User-Interface for phylogenetic network analysis, employing the Squirrel algorithm to reconstruct semi-directed phylogenetic level-1 networks from quarnets or sequence alignments. To test out the GUI, we recommend using the `eNewick` string of the Xiphophorus network in the file  [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/data/exp2_xiphophorus_network.txt).
+The **PaNDA-GUI** is a Graphical User-Interface for exploring, visualizing and maximizing phylogenetic diversity in phylogenetic networks. To test out the GUI, we recommend using the `eNewick` string of the Xiphophorus network in the file  [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/data/exp2_xiphophorus_network.txt).
 
 <img src="https://github.com/user-attachments/assets/676c980a-cc2e-4f7e-adc3-bf41b155ef8d" alt="Sample Image" width="570" >
 
