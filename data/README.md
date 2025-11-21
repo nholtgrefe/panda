@@ -3,7 +3,7 @@ This folder contains the datasets and scripts supporting the experiments in the 
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag*.
 
-The results in the paper and in this repository were all obtained using version `1.0.0` of `phypanda`.
+The results in the paper and in this repository were all obtained using version `1.0.1` of `phypanda`.
 
 ## Experiment 1 - Simulations
 The directed phylogenetic networks for the simulation experiment in the paper were generated with the `R` script `exp1_simulate_networks.R`, using the `SciPhyNetwork` package [1]. The script exhaustively uses the function `sim.bdh.taxa.ssa` to simulate a birth-death-hybridization model until there are 100 $n$-leaf level-$l$ networks for each $n \in \{20, 50, 100, 200\}$ and $l \in \{0, \ldots, 15\}$. The speciation rate $\lambda$ was set at 1.0 and the extinction rate $\mu$ at 0.2, as in the `SciPhyNetwork` documentation. The hybridization rates $\nu$ were sampled uniformly at random from the interval $[0, 2/n]$, since this ensured the level of the networks were roughly in the right range.
