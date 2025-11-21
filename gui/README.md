@@ -16,14 +16,12 @@ Displays the `eNewick` string of the network under consideration. The four butto
 - `Copy eNewick`: copy the displayed `eNewick` string
 - `Clear All`: clears the current network
 
-<img src="https://github.com/user-attachments/assets/2ab886b6-00c6-482d-9fb4-7d5ccd02b6f1" alt="Sample Image" width="800" >
-
 <img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/67788c32-64d7-4f13-8e2e-b153c7a80e45" />
 
-### Network Window
+### Network information
+Shows the number of taxa of the network, the total all-paths phylogenetic diversity (i.e. the phylogenetic diversity of the set of all taxa), the level of the network, and the number of reticulation vertices in the network.
 
 <img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/6f738211-1334-4f77-a1c2-7d457c88538f" />
-
 
 ### Selection
 
