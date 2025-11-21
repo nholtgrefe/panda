@@ -4,6 +4,8 @@ The **PaNDA-GUI** is a Graphical User-Interface for exploring, visualizing and m
 
 <img src="https://github.com/user-attachments/assets/676c980a-cc2e-4f7e-adc3-bf41b155ef8d" alt="Sample Image" width="570" >
 
+<img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/36bebbc1-b5d8-4240-b8bf-31afbfab2820" />
+
 
 ## Installation
 The GUI is available for Windows and Linux [here](https://drive.google.com/drive/folders/1QQXV0h1XUMIXVlNTy5vgyK0DtA-QtJTd?usp=drive_link). To install and run, simply download the `.exe` file for your operating system and open/execute it once downloaded. (If preffered, experienced users can also run the GUI from the [source files](https://github.com/nholtgrefe/panda/tree/main/gui/src), although we then suggest using our Python package [`phypanda`](https://github.com/nholtgrefe/panda/tree/main/phypanda) instead.)
