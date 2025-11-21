@@ -6,7 +6,7 @@ The **PaNDA-GUI** is a Graphical User-Interface for phylogenetic network analysi
 
 
 ## Installation
-The GUI is available for Windows and Linux [here](https://drive.google.com/drive/folders/1uEC8GHvj5zClI0K_OWPwMRlaA1l1ypmy?usp=sharing). To install and run, simply download the `.exe` file for your operating system and open/execute it once downloaded. (If preffered, experienced users can also run the GUI from the [source files](https://github.com/nholtgrefe/panda/tree/main/gui/src), although we then suggest using our Python package [`phypanda`](https://github.com/nholtgrefe/panda/tree/main/phypanda) instead.)
+The GUI is available for Windows and Linux [here](https://drive.google.com/drive/folders/1QQXV0h1XUMIXVlNTy5vgyK0DtA-QtJTd?usp=drive_link). To install and run, simply download the `.exe` file for your operating system and open/execute it once downloaded. (If preffered, experienced users can also run the GUI from the [source files](https://github.com/nholtgrefe/panda/tree/main/gui/src), although we then suggest using our Python package [`phypanda`](https://github.com/nholtgrefe/panda/tree/main/phypanda) instead.)
 
 ## Features
 
