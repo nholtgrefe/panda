@@ -1,7 +1,6 @@
 
 if __name__ == "__main__":
-    from panda import *
-    import scanwidth as sw
+    from phypanda import *
     import pandas as pd
     import time, csv, os
 
@@ -67,7 +66,7 @@ if __name__ == "__main__":
 
                 # Compute scanwidth
                 t3 = time.perf_counter()
-                G = sw.DAG(nx.DiGraph(N))
+                G = DAG(nx.DiGraph(N))
                 t4 = time.perf_counter()
                 scanwidth, extension = G.optimal_scanwidth()
                 t5 = time.perf_counter()
@@ -75,15 +74,15 @@ if __name__ == "__main__":
 
                 # Compute PD 1
                 t6 = time.perf_counter()
-                diversity1, solution = all_paths_pd(N, k1, tree_extension=tree_extension)
+                diversity1, solution = solve_MAPPD(N, k1, tree_extension=tree_extension)
                 t7 = time.perf_counter()
 
                 # Compute PD 2
-                diversity2, solution = all_paths_pd(N, k2, tree_extension=tree_extension)
+                diversity2, solution = solve_MAPPD(N, k2, tree_extension=tree_extension)
                 t8 = time.perf_counter()
 
                 # Compute PD 3
-                diversity3, solution = all_paths_pd(N, k3, tree_extension=tree_extension)
+                diversity3, solution = solve_MAPPD(N, k3, tree_extension=tree_extension)
                 t9 = time.perf_counter()
 
                 # Double check
