@@ -8,7 +8,7 @@ This is the repository corresponding to the paper:
 
 ## Using PaNDA
 The **PaNDA** software is easy to install and can either be run with a graphical user-interface (GUI) for inexperienced programmers, or as part of our Python package `phypanda` which allows for more functionality (and is therefore recommended if the user is experienced with Python). For an installation guide and a more detailed overview of the features (including screenshots for the GUI), please click on the links below to visit the `README.md` files in the respective folders:
-- [gui](https://github.com/nholtgrefe/squirrel/tree/main/gui), for the graphical user-interface (Windows and Linux only);
+- [gui](https://github.com/nholtgrefe/panda/tree/main/gui), for the graphical user-interface (Windows and Linux only);
 - [phypanda](https://github.com/nholtgrefe/panda/tree/main/phypanda), for the corresponding Python package.
 
 To test out the GUI or the Python package, we recommend using the Xiphophorus phylogenetic network in the file [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/data/exp2_xiphophorus_network.txt).
