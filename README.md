@@ -1,5 +1,3 @@
-*This webpage is currently under construction and will be finalized on November 22.*
-
 # PaNDA
 This is the repository corresponding to the paper: 
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
