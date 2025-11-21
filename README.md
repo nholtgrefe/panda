@@ -4,6 +4,7 @@
 This is the repository corresponding to the paper: 
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
+> bioRxiv, 2025. doi: [10.1101/2025.11.14.688467](https://www.biorxiv.org/content/10.1101/2025.11.14.688467)
 
 ## Using PaNDA
 The **PaNDA** software is easy to install and can either be run with a graphical user-interface (GUI) for inexperienced programmers, or as part of our Python package `phypanda` which allows for more functionality (and is therefore recommended if the user is experienced with Python). For an installation guide and a more detailed overview of the features (including screenshots for the GUI), please click on the links below to visit the `README.md` files in the respective folders:
@@ -19,3 +20,4 @@ The simulation results, data sets and used scripts from the experiments in the p
 If you use any of the code in this repository, please cite the corresponding paper:
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
+> bioRxiv, 2025. doi: [10.1101/2025.11.14.688467](https://www.biorxiv.org/content/10.1101/2025.11.14.688467)
