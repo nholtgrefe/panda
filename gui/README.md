@@ -2,23 +2,19 @@
 
 The **PaNDA-GUI** is a Graphical User-Interface for exploring, visualizing and maximizing phylogenetic diversity in phylogenetic networks. To test out the GUI, we recommend using the `eNewick` string of the Xiphophorus network in the file  [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/data/exp2_xiphophorus_network.txt).
 
-<img src="https://github.com/user-attachments/assets/676c980a-cc2e-4f7e-adc3-bf41b155ef8d" alt="Sample Image" width="570" >
-
 <img width="1586" height="630" alt="Screenshot from 2025-11-21 20-28-13" src="https://github.com/user-attachments/assets/36bebbc1-b5d8-4240-b8bf-31afbfab2820" />
-
 
 ## Installation
 The GUI is available for Windows and Linux [here](https://drive.google.com/drive/folders/1QQXV0h1XUMIXVlNTy5vgyK0DtA-QtJTd?usp=drive_link). To install and run, simply download the `.exe` file for your operating system and open/execute it once downloaded. (If preffered, experienced users can also run the GUI from the [source files](https://github.com/nholtgrefe/panda/tree/main/gui/src), although we then suggest using our Python package [`phypanda`](https://github.com/nholtgrefe/panda/tree/main/phypanda) instead.)
 
 ## Features
 
-### File Window
-- `Select file`: Allows the user to select a file out of one of the two following options:
-	1.  `.fasta` or `.nexus` file containing a multiple sequence alignment;
-	2.  `.txt` file containing a dense set of tf-quarnets, where each line contains one tf-quarnet in the folowing format:
-		- `SQ: a b c d 1.0` for a quarnet on leaves $\{a,b,c,d\}$ with a split $ab|cd$ and weight 1.0;
-		- `4C: a b c d 1.0` for a quarnet on leaves $\{a,b,c,d\}$ with a four-cycle $a,b,c,d$, the leaf $a$ below the reticulation and weight 1.0.
-- `File information`: Displays information on the chosen file, such as a list of taxa and the length of the sequence alignment.
+### eNewick input
+Displays the `eNewick` string of the network under consideration. The four buttons from left to right:
+- `Load from file`: loads a network (in `eNewick`) from a file
+- `Paste eNewick`: paste or type the `eNewick` of a network in a textbox
+- `Copy eNewick`: copy the displayed `eNewick` string
+- `Clear All`: clears the current network
 
 <img src="https://github.com/user-attachments/assets/2ab886b6-00c6-482d-9fb4-7d5ccd02b6f1" alt="Sample Image" width="800" >
 
