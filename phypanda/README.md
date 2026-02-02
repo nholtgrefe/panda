@@ -33,6 +33,8 @@ k = 10
 pd, taxa = ppa.solve_MAPPD(enewick, k)
 ```
 
+Note, edges without branch lengths default 1.0 and not to 0.0. To use zero-length edges, explicitly set these edges to 0.0 in the eNewick string.
+
 To print the resulting maximum all-paths diversity and the selected taxa, run:
 
 ```
