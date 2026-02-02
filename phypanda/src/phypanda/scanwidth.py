@@ -3,11 +3,9 @@ from networkx.algorithms.flow import shortest_augmenting_path
 
 import numpy as np
 
-import itertools, time, os, random, sys
+import itertools, time, os, sys
 
 #from plotting_module import plot_graph, plot_tree_extension
-
-#random.seed(42)
 
 class DAG:
     """Class for directed acyclic graphs to compute and visualize scanwidth."""
@@ -78,7 +76,9 @@ class DAG:
         global rpsw_table
 
         if method == 1:
-            extension_list = [ext[::-1] for ext in nx.all_topological_sorts(self.graph)]
+            # Sort topological sorts for deterministic ordering (use str key to handle mixed types)
+            extension_list = sorted([ext[::-1] for ext in nx.all_topological_sorts(self.graph)], 
+                                   key=lambda x: tuple(str(v) for v in x))
             SW_sigma_list = []
             
             for sigma in extension_list:
@@ -96,11 +96,15 @@ class DAG:
             rpsw_table = {}
             
             if method == 4:
-                sw, sigma = self._restricted_partial_scanwidth(self.graph.nodes(), cs=True)
+                # Sort nodes for deterministic ordering (use str key to handle mixed types)
+                sw, sigma = self._restricted_partial_scanwidth(sorted(self.graph.nodes(), key=str), cs=True)
             elif method == 2:
-                sw, sigma = self._partial_scanwidth(set(), set(self.graph.nodes()), set())
+                # Sort nodes for deterministic ordering (use str key to handle mixed types)
+                sorted_nodes = sorted(self.graph.nodes(), key=str)
+                sw, sigma = self._partial_scanwidth(set(), set(sorted_nodes), set())
             elif method == 3:
-                sw, sigma = self._restricted_partial_scanwidth(self.graph.nodes(), cs=False)
+                # Sort nodes for deterministic ordering (use str key to handle mixed types)
+                sw, sigma = self._restricted_partial_scanwidth(sorted(self.graph.nodes(), key=str), cs=False)
                         
             ext = Extension(self.graph, sigma)
             
@@ -131,7 +135,8 @@ class DAG:
             global rpsw_table
             rpsw_table = {}
             
-        sw, sigma = self._restricted_partial_scanwidth(self.graph.nodes(), k)
+        # Sort nodes for deterministic ordering (use str key to handle mixed types)
+        sw, sigma = self._restricted_partial_scanwidth(sorted(self.graph.nodes(), key=str), k)
         
         if sw == self.infinity:
             return False
@@ -151,9 +156,10 @@ class DAG:
         # For the fixed parameter version, we must use CS
         if k != self.infinity: assert cs == True
         
-        vertex_list = list(vertices) # Takes on the role of W
+        # Sort vertices for deterministic ordering (use str key to handle mixed types)
+        vertex_list = sorted(list(vertices), key=str) # Takes on the role of W (sorted for determinism)
         subgraph = self.graph.subgraph(vertex_list) # Takes on the role of G[W]      
-        roots = [v for v in subgraph.nodes() if subgraph.in_degree(v) == 0] ##
+        roots = sorted([v for v in subgraph.nodes() if subgraph.in_degree(v) == 0], key=str) ## Sorted for determinism
         
         # Check table
         if self._memory == True:
@@ -174,6 +180,8 @@ class DAG:
         
         else:
             components = [comp for comp in nx.weakly_connected_components(subgraph)] ##
+            # Sort components by sorted node list for determinism (use str key to handle mixed types)
+            components = sorted(components, key=lambda comp: sorted(comp, key=str))
             
             # If G[W] is weakly disconnected and CS is True
             if cs == True and len(components) > 1:
@@ -277,9 +285,12 @@ class DAG:
         subgraph_top = subgraph_top.copy()
         subgraph_down = subgraph_down.copy()        
         
-        # Add super leaf and super root
-        super_leaf = "super_leaf_" + str(random.getrandbits(64))
-        super_root = "super_root_" + str(random.getrandbits(64))
+        # Add super leaf and super root (deterministic based on graph structure)
+        # Use hash of sorted nodes to ensure determinism (use str key to handle mixed types)
+        top_nodes_hash = hash(tuple(sorted(subgraph_top.nodes(), key=str)))
+        down_nodes_hash = hash(tuple(sorted(subgraph_down.nodes(), key=str)))
+        super_leaf = "super_leaf_" + str(abs(top_nodes_hash))
+        super_root = "super_root_" + str(abs(down_nodes_hash))
         subgraph_top.add_node(super_leaf, merged=True)
         subgraph_down.add_node(super_root, merged=True)
                 
@@ -409,7 +420,7 @@ class DAG:
         elif init_ext == 'cut':
             extension = self.cut_splitting_heuristic()[1]
         elif init_ext == 'random':
-            extension = self.random_extension()[1]
+            extension = self.random_extension(seed=seed)[1]
         
         tree_extension = extension.canonical_tree_extension()
         tree = tree_extension.tree
@@ -1019,20 +1030,24 @@ class Extension:
         # Initialize
         Gamma = nx.DiGraph()
         sig = self.sigma.copy()
-        rho = {node: None for node in self.graph.nodes()}
+        # Sort nodes for deterministic ordering (use str key to handle mixed types)
+        rho = {node: None for node in sorted(self.graph.nodes(), key=str)}
         
         while len(sig) > 0:
             v = sig[0]
             sig.remove(v)
-            C = list(self.graph.successors(v))
+            # Sort successors for deterministic ordering (use str key to handle mixed types)
+            C = sorted(list(self.graph.successors(v)), key=str)
             Gamma.add_node(v)
             rho[v] = v
             
             if len(C) > 0:
                 R = set([rho[c] for c in C])
-                for r in R:
+                # Sort R for deterministic iteration (use str key to handle mixed types)
+                for r in sorted(R, key=str):
                     Gamma.add_edge(v, r)
-                for u in Gamma.nodes():
+                # Sort nodes for deterministic iteration (use str key to handle mixed types)
+                for u in sorted(Gamma.nodes(), key=str):
                     if rho[u] in R:
                         rho[u] = v
         

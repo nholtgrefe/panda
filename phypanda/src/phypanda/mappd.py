@@ -10,7 +10,8 @@ from .scanwidth import DAG, TreeExtension
 
 def powerset(s):
     """Yield subsets of a set s as sets, one at a time."""
-    s_list = tuple(s)
+    # Sort input for deterministic ordering (use str key to handle mixed types)
+    s_list = tuple(sorted(s, key=str))
     for r in range(len(s_list) + 1):
         for subset in combinations(s_list, r):
             yield set(subset)
@@ -357,6 +358,24 @@ class DP_instance():
 
         self.m = self._max_edge_offspring_count()
 
+    @staticmethod
+    def _solution_set_key(solution_set):
+        """Convert a solution set (frozenset of edges) to a sorted tuple key for lexicographical comparison.
+        
+        Parameters
+        ----------
+        solution_set : frozenset
+            A set of edges (tuples) representing a solution subset.
+            
+        Returns
+        -------
+        tuple
+            A sorted tuple of string representations of edges for deterministic comparison.
+            All elements are converted to strings to handle mixed types.
+        """
+        # Convert all edge elements to strings to ensure comparability
+        return tuple(sorted((str(e[0]), str(e[1])) for e in solution_set))
+
     def _initialize_GW(self):
         """Computes all GW_v scanwidth bags."""
         res = {v:None for v in self.network.nodes}
@@ -405,6 +424,8 @@ class DP_instance():
         # Nested dictionary [vertex][phi][l]. First entry is the value, second is the set of species
         self.table = defaultdict(lambda: defaultdict(dict))
 
+        # DFS traversal - NetworkX dfs_postorder_nodes is deterministic when tree is built deterministically
+        # (which it is, since we sort children when building the tree extension)
         for v in nx.dfs_postorder_nodes(self.tree_extension.tree):
             if v in self.network.leaves:
                 self._process_leaf_node(v, k)
@@ -488,11 +509,27 @@ class DP_instance():
                     if len(children) == 1:
                         u = children[0]
 
-                        for S in phi_psi_GW_subsets[0]:
+                        # Sort subsets for deterministic iteration when there are ties
+                        # Use a tuple key to ensure deterministic comparison even when primary keys are equal
+                        sorted_subsets = sorted(phi_psi_GW_subsets[0], 
+                                              key=lambda s: (self._solution_set_key(s), id(s)))
+                        for S in sorted_subsets:
                             # DP[u, (phi \cup psi) \cap GW_u, l]
                             val1 = self.table.get(u).get(l).get(S)[0]
                             val = val1 + val3
-                            if val >= dp:
+                            # Break ties deterministically: update if val > dp, or if val == dp and new solution is lexicographically smaller
+                            should_update = False
+                            if val > dp:
+                                should_update = True
+                            elif val == dp and pointer is not None:
+                                # Compare current pointer's S with new S lexicographically
+                                current_S = pointer[1][2]
+                                if self._solution_set_key(S) < self._solution_set_key(current_S):
+                                    should_update = True
+                            elif val == dp and pointer is None:
+                                should_update = True
+                            
+                            if should_update:
                                 dp = val
                                 pointer = (1, (u, l, S))
 
@@ -503,7 +540,11 @@ class DP_instance():
                         for l_prime in range(l + 1):
                             # Iterate through all combinations of (phi \cup psi) \cap GW_x (with x \in {u, w\})
                             # Note: this loop works since both lists have the same set
-                            for i in range(len(phi_psi_GW_subsets[0])):
+                            # Create sorted indices for deterministic iteration when there are ties
+                            indices = list(range(len(phi_psi_GW_subsets[0])))
+                            # Sort indices by the frozenset content for deterministic tie-breaking
+                            indices.sort(key=lambda i: self._solution_set_key(phi_psi_GW_subsets[0][i]))
+                            for i in indices:
                                 # DP[u, (phi \cup psi) \cap GW_u, l']
                                 S1 = phi_psi_GW_subsets[0][i]
                                 val1 = self.table.get(u).get(l_prime).get(S1)[0]
@@ -513,7 +554,22 @@ class DP_instance():
                                 val2 = self.table.get(w).get(l - l_prime).get(S2)[0]
 
                                 val = val1 + val2 + val3
-                                if val >= dp:
+                                # Break ties deterministically: update if val > dp, or if val == dp and new solution is lexicographically smaller
+                                should_update = False
+                                if val > dp:
+                                    should_update = True
+                                elif val == dp and pointer is not None:
+                                    # Compare current pointer's (S1, S2) with new (S1, S2) lexicographically
+                                    current_S1 = pointer[1][2]
+                                    current_S2 = pointer[2][2]
+                                    solution_key = (self._solution_set_key(S1), self._solution_set_key(S2))
+                                    current_solution_key = (self._solution_set_key(current_S1), self._solution_set_key(current_S2))
+                                    if solution_key < current_solution_key:
+                                        should_update = True
+                                elif val == dp and pointer is None:
+                                    should_update = True
+                                
+                                if should_update:
                                     dp = val
                                     pointer = (2, (u, l_prime, S1), (w, l-l_prime, S2))
 
