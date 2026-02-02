@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phypanda"
-version = "1.0.1"
+version = "1.0.2"
 description = "package containing the PaNDA framework for exploring, visualizing and maximizing phylogenetic diversity in phylogenetic networks"
 authors = [
     { name = "N. Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
