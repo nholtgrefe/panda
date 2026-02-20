@@ -37,10 +37,8 @@ if __name__ == "__main__":
                     'time_panda3',
                     'k1',
                     'k2',
-                    'k3',
-                    'diversity1',
-                    'diversity2',
-                    'diversity3']
+                    'k3'
+                    ]
             
             writer.writerow(header)
 
@@ -74,15 +72,15 @@ if __name__ == "__main__":
 
                 # Compute PD 1
                 t6 = time.perf_counter()
-                diversity1, solution = solve_MAPPD(N, k1, tree_extension=tree_extension)
+                _, _ = solve_MAPPD(N, k1, tree_extension=tree_extension)
                 t7 = time.perf_counter()
 
                 # Compute PD 2
-                diversity2, solution = solve_MAPPD(N, k2, tree_extension=tree_extension)
+                _, _ = solve_MAPPD(N, k2, tree_extension=tree_extension)
                 t8 = time.perf_counter()
 
                 # Compute PD 3
-                diversity3, solution = solve_MAPPD(N, k3, tree_extension=tree_extension)
+                _, _ = solve_MAPPD(N, k3, tree_extension=tree_extension)
                 t9 = time.perf_counter()
 
                 # Double check
@@ -113,10 +111,8 @@ if __name__ == "__main__":
                         time_panda3,
                         k1,
                         k2,
-                        k3,
-                        diversity1,
-                        diversity2,
-                        diversity3]
+                        k3
+                        ]
 
                 # Write one row to file
                 writer.writerow(info)
