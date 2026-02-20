@@ -350,6 +350,7 @@ class DP_instance():
         self.network = network
         self.tree_extension = tree_extension
         self.minus_infinity = -2 * sum(network.weights.values()) - 1
+        self.root = network.root_node()
 
         self.GW = self._initialize_GW()
 
@@ -469,15 +470,16 @@ class DP_instance():
             # Precompute necessary sets in outer loop to limit nr. of set-operations #
             phi_frozen = frozenset(phi)
             phi_len = len(phi)
+            phi_delta_in_v = phi & delta_in_v
             
             # Used for heuristic pruning
             bound = math.ceil(phi_len / self.m)
 
             # val3 equals Omega(phi \cap \delta_in (v))
-            val3 = sum(self.network.weight(u, v) for (u, v) in phi & delta_in_v)
+            val3 = sum(self.network.weight(u, v) for (u, v) in phi_delta_in_v)
 
-            # phi_psi_subsets contains all combinations of phi \cup psi with psi \subseteq \delta_out (v)
-            phi_psi_subsets = [phi | psi for psi in powerset(delta_out_v)]
+            # phi_psi_subsets contains all combinations of phi \cup psi with psi \subseteq \delta_out (v) and |psi| > 0
+            phi_psi_subsets = [phi | psi for psi in powerset(delta_out_v) if len(psi) > 0]
 
             # Create list containing one list for each child x of v, containing
             # all combinations of (phi \cup psi) \cap GW_x
@@ -497,74 +499,65 @@ class DP_instance():
 
                 # Heuristic pruning, based on trivial hitting set lower bound, i.e. if l < bound, we can never have that
                 # |off(e) \cap A| > 0 for all e \in phi
-                elif l  < bound:
+                elif l < bound:
                     dp = self.minus_infinity
                     pointer = None
 
                 else:
                     dp = self.minus_infinity - 1
                     pointer = None
-
+                    
                     ## Case: v has one child ##
                     if len(children) == 1:
                         u = children[0]
-
-                        # Sort subsets for deterministic iteration when there are ties
-                        # Use a tuple key to ensure deterministic comparison even when primary keys are equal
-                        sorted_subsets = sorted(phi_psi_GW_subsets[0], 
-                                              key=lambda s: (self._solution_set_key(s), id(s)))
-                        for S in sorted_subsets:
-                            # DP[u, (phi \cup psi) \cap GW_u, l]
-                            val1 = self.table.get(u).get(l).get(S)[0]
-                            val = val1 + val3
-                            # Break ties deterministically: update if val > dp, or if val == dp and new solution is lexicographically smaller
-                            should_update = False
-                            if val > dp:
-                                should_update = True
-                            elif val == dp and pointer is not None:
-                                # Compare current pointer's S with new S lexicographically
-                                current_S = pointer[1][2]
-                                if self._solution_set_key(S) < self._solution_set_key(current_S):
-                                    should_update = True
-                            elif val == dp and pointer is None:
-                                should_update = True
-                            
-                            if should_update:
-                                dp = val
-                                pointer = (1, (u, l, S))
-
-                    ## Case: v has two children ##
-                    elif len(children) == 2:
-                        u, w = children
-
-                        for l_prime in range(l + 1):
-                            # Iterate through all combinations of (phi \cup psi) \cap GW_x (with x \in {u, w\})
-                            # Note: this loop works since both lists have the same set
-                            # Create sorted indices for deterministic iteration when there are ties
-                            indices = list(range(len(phi_psi_GW_subsets[0])))
-                            # Sort indices by the frozenset content for deterministic tie-breaking
-                            indices.sort(key=lambda i: self._solution_set_key(phi_psi_GW_subsets[0][i]))
-                            for i in indices:
-                                # DP[u, (phi \cup psi) \cap GW_u, l']
-                                S1 = phi_psi_GW_subsets[0][i]
-                                val1 = self.table.get(u).get(l_prime).get(S1)[0]
-
-                                # DP[w, (phi \cup psi) \cap GW_w, l-l']
-                                S2 = phi_psi_GW_subsets[1][i]
-                                val2 = self.table.get(w).get(l - l_prime).get(S2)[0]
-
-                                val = val1 + val2 + val3
+                        if len(phi_delta_in_v) == 0 and v != self.root:
+                            S = frozenset(phi & GW_children[0])
+                            dp = self.table.get(u).get(l).get(S)[0]
+                            pointer = (1, (u, l, S))
+                        else:
+                            # Sort subsets for deterministic iteration when there are ties
+                            # Use a tuple key to ensure deterministic comparison even when primary keys are equal
+                            sorted_subsets = sorted(phi_psi_GW_subsets[0], 
+                                                key=lambda s: (self._solution_set_key(s), id(s)))
+                            for S in sorted_subsets:
+                                # DP[u, (phi \cup psi) \cap GW_u, l]
+                                val1 = self.table.get(u).get(l).get(S)[0]
+                                val = val1 + val3
                                 # Break ties deterministically: update if val > dp, or if val == dp and new solution is lexicographically smaller
                                 should_update = False
                                 if val > dp:
                                     should_update = True
                                 elif val == dp and pointer is not None:
-                                    # Compare current pointer's (S1, S2) with new (S1, S2) lexicographically
+                                    # Compare current pointer's S with new S lexicographically
+                                    current_S = pointer[1][2]
+                                    if self._solution_set_key(S) < self._solution_set_key(current_S):
+                                        should_update = True
+                                elif val == dp and pointer is None:
+                                    should_update = True
+                                
+                                if should_update:
+                                    dp = val
+                                    pointer = (1, (u, l, S))
+
+                    ## Case: v has two children ##
+                    elif len(children) == 2:
+                        u, w = children
+
+                        if len(phi_delta_in_v) == 0 and v != self.root:
+                            S1 = frozenset(phi & GW_children[0])
+                            S2 = frozenset(phi & GW_children[1])
+
+                            for l_prime in range(l + 1):
+                                val1 = self.table.get(u).get(l_prime).get(S1)[0]
+                                val2 = self.table.get(w).get(l - l_prime).get(S2)[0]
+                                val = val1 + val2
+                                should_update = False
+                                if val > dp:
+                                    should_update = True
+                                elif val == dp and pointer is not None:
                                     current_S1 = pointer[1][2]
                                     current_S2 = pointer[2][2]
-                                    solution_key = (self._solution_set_key(S1), self._solution_set_key(S2))
-                                    current_solution_key = (self._solution_set_key(current_S1), self._solution_set_key(current_S2))
-                                    if solution_key < current_solution_key:
+                                    if self._solution_set_key(S1) < self._solution_set_key(current_S1) or self._solution_set_key(S2) < self._solution_set_key(current_S2):
                                         should_update = True
                                 elif val == dp and pointer is None:
                                     should_update = True
@@ -573,9 +566,45 @@ class DP_instance():
                                     dp = val
                                     pointer = (2, (u, l_prime, S1), (w, l-l_prime, S2))
 
+                        else:
+                            for l_prime in range(l + 1):
+                                # Iterate through all combinations of (phi \cup psi) \cap GW_x (with x \in {u, w\})
+                                # Note: this loop works since both lists have the same set
+                                # Create sorted indices for deterministic iteration when there are ties
+                                indices = list(range(len(phi_psi_GW_subsets[0])))
+                                # Sort indices by the frozenset content for deterministic tie-breaking
+                                indices.sort(key=lambda i: self._solution_set_key(phi_psi_GW_subsets[0][i]))
+                                for i in indices:
+                                    # DP[u, (phi \cup psi) \cap GW_u, l']
+                                    S1 = phi_psi_GW_subsets[0][i]
+                                    val1 = self.table.get(u).get(l_prime).get(S1)[0]
+
+                                    # DP[w, (phi \cup psi) \cap GW_w, l-l']
+                                    S2 = phi_psi_GW_subsets[1][i]
+                                    val2 = self.table.get(w).get(l - l_prime).get(S2)[0]
+
+                                    val = val1 + val2 + val3
+                                    # Break ties deterministically: update if val > dp, or if val == dp and new solution is lexicographically smaller
+                                    should_update = False
+                                    if val > dp:
+                                        should_update = True
+                                    elif val == dp and pointer is not None:
+                                        # Compare current pointer's (S1, S2) with new (S1, S2) lexicographically
+                                        current_S1 = pointer[1][2]
+                                        current_S2 = pointer[2][2]
+                                        solution_key = (self._solution_set_key(S1), self._solution_set_key(S2))
+                                        current_solution_key = (self._solution_set_key(current_S1), self._solution_set_key(current_S2))
+                                        if solution_key < current_solution_key:
+                                            should_update = True
+                                    elif val == dp and pointer is None:
+                                        should_update = True
+                                    
+                                    if should_update:
+                                        dp = val
+                                        pointer = (2, (u, l_prime, S1), (w, l-l_prime, S2))
+
                 # Write to table
                 self.table[v][l][phi_frozen] = (dp, pointer)
-                
 
     def _backtrack_solution(self, v, l, phi_frozen):
         """Uses backtracking to get the solution set corresponding to the value for
@@ -609,13 +638,12 @@ class DP_instance():
 
         self._fill_dp_table(k)
         
-        root = self.network.root_node()
-        pd = self.table[root][k][frozenset()][0]
+        pd = self.table[self.root][k][frozenset()][0]
         
         if not include_solution:
             return pd
         
-        solution = self._backtrack_solution(root, k, frozenset())
+        solution = self._backtrack_solution(self.root, k, frozenset())
 
         return pd, sorted(list(solution))
         
