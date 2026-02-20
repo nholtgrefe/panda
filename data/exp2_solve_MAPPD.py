@@ -1,3 +1,5 @@
+# This script was run using phypanda version 1.0.3.
+
 if __name__ == "__main__":
     from phypanda import DirectedNetwork, solve_MAPPD
     
