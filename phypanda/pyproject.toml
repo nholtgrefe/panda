@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phypanda"
-version = "1.0.3"
+version = "2.0.0.dev"
 description = "package containing the PaNDA framework for exploring, visualizing and maximizing phylogenetic diversity in phylogenetic networks"
 authors = [
     { name = "N. Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
@@ -14,11 +14,9 @@ requires-python = ">=3.7"
 classifiers = ["License :: OSI Approved :: MIT License"]
 
 dependencies = [
-    "physquirrel <= 1.1",
-    "numpy >= 2.0",
+    "phylozoo >= 0.1.1",
     "networkx >= 3.0",
-    "matplotlib >= 3.7",
-    "phylox >= 1.1",
+    "scanwidth @ git+https://github.com/nholtgrefe/scanwidth.git@main#subdirectory=scanwidth",
 ]
 
 [tool.setuptools.packages.find]
