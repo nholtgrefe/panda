@@ -12,8 +12,18 @@ from .base import (
     solve_max_diversity,
 )
 from .measure import (
+    average_tree,
     all_paths,
     AllPathsDiversity,
+    network,
+    NetworkDiversity,
+    min_tree,
+    MinTreeDiversity,
+    max_tree,
+    MaxTreeDiversity,
+    tree,
+    TreeDiversity,
+    AverageTreeDiversity,
 )
 from .protocol import DiversityMeasure
 
@@ -24,5 +34,15 @@ __all__ = [
     "solve_max_diversity",
     "all_paths",
     "AllPathsDiversity",
+    "min_tree",
+    "MinTreeDiversity",
+    "max_tree",
+    "MaxTreeDiversity",
+    "tree",
+    "TreeDiversity",
+    "network",
+    "NetworkDiversity",
+    "average_tree",
+    "AverageTreeDiversity",
     "DiversityMeasure",
 ]

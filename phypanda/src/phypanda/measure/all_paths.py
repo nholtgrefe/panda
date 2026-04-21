@@ -57,9 +57,10 @@ class _DPInstance:
         self.minus_infinity = -2 * total_weight - 1
 
         self.GW = self._initialize_GW()
-        self.table: dict[Any, dict[int, dict[frozenset[tuple[Any, Any]], tuple[float, Any]]]] = (
-            defaultdict(lambda: defaultdict(dict))
-        )
+        self.table: dict[
+            Any,
+            dict[int, dict[frozenset[tuple[Any, Any]], tuple[float, Any]]],
+        ] = defaultdict(lambda: defaultdict(dict))
         self.m = self._max_edge_offspring_count()
 
     def _get_branch_length(self, u: Any, v: Any) -> float:
@@ -89,13 +90,18 @@ class _DPInstance:
         dict[Any, set[tuple[Any, Any]]]
             Mapping from tree-extension node to its scanwidth bag.
         """
-        res: dict[Any, set[tuple[Any, Any]]] = {v: set() for v in self.network._graph.nodes()}
+        res: dict[Any, set[tuple[Any, Any]]] = {
+            v: set() for v in self.network._graph.nodes()
+        }
+
         for v in self.network._graph.nodes():
             sink = set(nx.descendants(self.tree_extension.tree, v))
             sink.add(v)
+
             for u, w, _ in self.network._graph.edges(keys=True):
                 if u not in sink and w in sink:
                     res[v].add((u, w))
+
         return res
 
     def _max_edge_offspring_count(self) -> int:
@@ -185,8 +191,13 @@ class _DPInstance:
             Number of taxa to select.
         """
         GW_v = self.GW.get(v, set())
-        delta_in_v = {(u, v) for u, _, _ in self.network.incident_parent_edges(v, keys=True)}
-        delta_out_v = {(v, w) for _, w, _ in self.network.incident_child_edges(v, keys=True)}
+        delta_in_v = {
+            (u, v) for u, _, _ in self.network.incident_parent_edges(v, keys=True)
+        }
+        delta_out_v = {
+            (v, w) for _, w, _ in self.network.incident_child_edges(v, keys=True)
+        }
+
         children = list(self.tree_extension.tree.successors(v))
         GW_children = [self.GW.get(child, set()) for child in children]
 
@@ -217,26 +228,40 @@ class _DPInstance:
                     if len(children) == 1:
                         u = children[0]
                         for S in phi_psi_GW_subsets[0]:
-                            val1 = self.table.get(u, {}).get(l, {}).get(S, (self.minus_infinity, None))[0]
+                            val1 = self.table.get(u, {}).get(l, {}).get(
+                                S, (self.minus_infinity, None)
+                            )[0]
                             val = val1 + val3
+
                             if val >= dp:
                                 dp = val
                                 pointer = (1, (u, l, S))
+
                     elif len(children) == 2:
                         u, w = children
                         for l_prime in range(l + 1):
                             for i in range(len(phi_psi_GW_subsets[0])):
                                 S1 = phi_psi_GW_subsets[0][i]
-                                val1 = self.table.get(u, {}).get(l_prime, {}).get(S1, (self.minus_infinity, None))[0]
+                                val1 = self.table.get(u, {}).get(l_prime, {}).get(
+                                    S1, (self.minus_infinity, None)
+                                )[0]
                                 S2 = phi_psi_GW_subsets[1][i]
-                                val2 = self.table.get(w, {}).get(l - l_prime, {}).get(S2, (self.minus_infinity, None))[0]
+                                val2 = self.table.get(w, {}).get(
+                                    l - l_prime, {}
+                                ).get(S2, (self.minus_infinity, None))[0]
                                 val = val1 + val2 + val3
+
                                 if val >= dp:
                                     dp = val
                                     pointer = (2, (u, l_prime, S1), (w, l - l_prime, S2))
                 self.table[v][l][phi_frozen] = (dp, pointer)
 
-    def _backtrack_solution(self, v: Any, l: int, phi_frozen: frozenset[tuple[Any, Any]]) -> set[Any]:
+    def _backtrack_solution(
+        self,
+        v: Any,
+        l: int,
+        phi_frozen: frozenset[tuple[Any, Any]],
+    ) -> set[Any]:
         """
         Reconstruct selected leaves from DP pointers.
 
@@ -255,17 +280,26 @@ class _DPInstance:
             Selected leaf node identifiers.
         """
         pointer = self.table.get(v, {}).get(l, {}).get(phi_frozen, (None, None))[1]
+
         if pointer is None:
             return set()
+
         if pointer[0] == 0:
             return {v}
+
         if pointer[0] == 1:
             child, l_child, phi_child = pointer[1]
             return self._backtrack_solution(child, l_child, phi_child)
+
         if pointer[0] == 2:
             (u, l1, phi_u) = pointer[1]
             (w, l2, phi_w) = pointer[2]
-            return self._backtrack_solution(u, l1, phi_u) | self._backtrack_solution(w, l2, phi_w)
+            return self._backtrack_solution(
+                u,
+                l1,
+                phi_u,
+            ) | self._backtrack_solution(w, l2, phi_w)
+
         return set()
 
     def solve(self, k: int) -> tuple[float, set[Any]]:
@@ -283,9 +317,11 @@ class _DPInstance:
             Optimal all-paths diversity value and selected leaf node IDs.
         """
         self._fill_dp_table(k)
+
         root = self.network.root_node
         pd = self.table[root][k][frozenset()][0]
         solution = self._backtrack_solution(root, k, frozenset())
+
         return pd, solution
 
 
@@ -319,6 +355,7 @@ class AllPathsDiversity:
         """
         if not taxa:
             return 0.0
+
         leaf_nodes: Set[Any] = set()
         for taxon in taxa:
             node_id = network.get_node_id(taxon)
@@ -329,10 +366,12 @@ class AllPathsDiversity:
         nodes_to_keep: Set[Any] = set(leaf_nodes)
         for leaf in leaf_nodes:
             nodes_to_keep.update(nx.ancestors(dag, leaf))
+
         total_diversity = 0.0
         for u, v, _, data in network._graph.edges(keys=True, data=True):
             if u in nodes_to_keep and v in nodes_to_keep:
                 total_diversity += data.get("branch_length", 1.0)
+
         return total_diversity
 
     def solve_maximization(
@@ -370,14 +409,17 @@ class AllPathsDiversity:
             raise PhyloZooValueError(
                 f"budget must be between 0 and {len(network.taxa)}, got {budget}"
             )
+
         if costs is not None and any(cost != 1 for cost in costs.values()):
             raise PhyloZooNotImplementedError(
                 "all_paths solve_maximization currently supports only unit costs."
             )
+
         if has_parallel_edges(network):
             raise PhyloZooValueError(
                 "MAPPD algorithm cannot be applied to networks with parallel edges"
             )
+
         two_blobs = k_blobs(network, k=2, trivial=False, leaves=False)
         if two_blobs:
             raise PhyloZooValueError(
@@ -395,6 +437,7 @@ class AllPathsDiversity:
             res = edge_scanwidth(dag, algorithm=tree_extension, **kwargs)
             if res[0] is None:
                 raise PhyloZooRuntimeError("Failed to compute tree extension")
+
             _, extension = res
             tree_extension = extension.to_canonical_tree_extension()
 
@@ -406,6 +449,7 @@ class AllPathsDiversity:
             if label is None:
                 raise PhyloZooRuntimeError(f"Leaf node {node_id} has no label")
             solution_taxa.add(label)
+
         return pd_value, solution_taxa
 
 
