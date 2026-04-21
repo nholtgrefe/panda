@@ -5,11 +5,11 @@ All-paths diversity measure implementation.
 from __future__ import annotations
 
 from collections import defaultdict
-from itertools import combinations
 from typing import Any, Mapping, Set
 
 import math
 import networkx as nx
+from scanwidth import DAG, TreeExtension, edge_scanwidth
 
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.core.network.dnetwork.classifications import has_parallel_edges, is_binary
@@ -22,27 +22,7 @@ from phylozoo.utils.exceptions import (
 )
 
 from ..protocol import DiversityMeasure
-from ..utils.scanwidth import ScanwidthDAG, TreeExtension
-
-
-def _powerset(s: set[Any]) -> Any:
-    """
-    Yield all subsets of a set.
-
-    Parameters
-    ----------
-    s : set[Any]
-        Input set.
-
-    Yields
-    ------
-    set[Any]
-        Subset of ``s``.
-    """
-    s_list = tuple(s)
-    for r in range(len(s_list) + 1):
-        for subset in combinations(s_list, r):
-            yield set(subset)
+from ..utils import powerset
 
 
 class _DPInstance:
@@ -182,7 +162,7 @@ class _DPInstance:
             Number of taxa to select.
         """
         GW_v = self.GW.get(v, set())
-        for phi in _powerset(GW_v):
+        for phi in powerset(GW_v):
             phi_frozen = frozenset(phi)
             for l in range(k + 1):
                 if l == 0:
@@ -210,12 +190,12 @@ class _DPInstance:
         children = list(self.tree_extension.tree.successors(v))
         GW_children = [self.GW.get(child, set()) for child in children]
 
-        for phi in _powerset(GW_v):
+        for phi in powerset(GW_v):
             phi_frozen = frozenset(phi)
             phi_len = len(phi)
             bound = math.ceil(phi_len / self.m) if self.m > 0 else 0
             val3 = sum(self._get_branch_length(u, w) for (u, w) in phi & delta_in_v)
-            phi_psi_subsets = [phi | psi for psi in _powerset(delta_out_v)]
+            phi_psi_subsets = [phi | psi for psi in powerset(delta_out_v)]
             phi_psi_GW_subsets: list[list[frozenset[tuple[Any, Any]]]] = []
             for i in range(len(children)):
                 GW = GW_children[i]
@@ -360,7 +340,7 @@ class AllPathsDiversity:
         network: DirectedPhyNetwork,
         budget: int,
         costs: Mapping[str, int] | None = None,
-        tree_extension: str | TreeExtension = "optimal_XP",
+        tree_extension: str | TreeExtension = "xp",
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
         """
@@ -376,7 +356,8 @@ class AllPathsDiversity:
         costs : Mapping[str, int] | None, optional
             Taxon costs. Only unit costs are currently supported.
         tree_extension : str | TreeExtension, optional
-            Tree-extension strategy or precomputed extension.
+            Edge-scanwidth solver algorithm name from the :mod:`scanwidth` package or a
+            precomputed tree extension.
         **kwargs : Any
             Keyword arguments forwarded to tree-extension computation.
 
@@ -407,19 +388,15 @@ class AllPathsDiversity:
         if not is_binary(network):
             working_network = binary_resolution(network)
             if isinstance(tree_extension, TreeExtension):
-                tree_extension = "optimal_XP"
+                tree_extension = "xp"
 
         if not isinstance(tree_extension, TreeExtension):
-            if tree_extension != "optimal_XP":
-                raise PhyloZooNotImplementedError(
-                    f"Tree extension method '{tree_extension}' not yet implemented. Only 'optimal_XP' is currently supported."
-                )
-            dag = ScanwidthDAG(working_network._graph._graph)
-            res = dag.optimal_scanwidth(**kwargs)
+            dag = DAG(working_network._graph._graph)
+            res = edge_scanwidth(dag, algorithm=tree_extension, **kwargs)
             if res[0] is None:
                 raise PhyloZooRuntimeError("Failed to compute tree extension")
             _, extension = res
-            tree_extension = extension.canonical_tree_extension()
+            tree_extension = extension.to_canonical_tree_extension()
 
         dp_instance = _DPInstance(working_network, tree_extension)
         pd_value, solution_node_ids = dp_instance.solve(budget)
