@@ -9,9 +9,6 @@ from typing import Any, Mapping, Set
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 
-from ..protocol import DiversityMeasure
-
-
 class MaxTreeDiversity:
     """
     Maximum displayed-tree diversity measure.

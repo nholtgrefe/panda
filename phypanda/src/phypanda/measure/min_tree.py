@@ -9,8 +9,6 @@ from typing import Any, Mapping, Set
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 
-from ..protocol import DiversityMeasure
-
 class MinTreeDiversity:
     """
     Minimum displayed-tree diversity measure.

@@ -22,7 +22,7 @@ def powerset(s: set[Any]) -> Iterator[set[Any]]:
     Iterator[set[Any]]
         Subsets of ``s``.
     """
-    s_list = tuple(s)
+    s_list = tuple(sorted(s, key=str))
     for r in range(len(s_list) + 1):
         for subset in combinations(s_list, r):
             yield set(subset)
