@@ -9,7 +9,14 @@ from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 
 
 class TreeDiversity:
-    """Tree-only diversity measure stub."""
+    """
+    Tree-only diversity measure stub.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # pp.tree.compute_diversity(network, {"a"})
+    """
 
     def compute_diversity(
         self,
@@ -17,7 +24,23 @@ class TreeDiversity:
         taxa: Set[str],
         **kwargs: Any,
     ) -> float:
-        """Compute diversity on trees only."""
+        """
+        Compute diversity on trees only.
+
+        Parameters
+        ----------
+        network : DirectedPhyNetwork
+            Input phylogenetic network.
+        taxa : Set[str]
+            Selected taxa.
+        **kwargs : Any
+            Unused measure-specific options.
+
+        Returns
+        -------
+        float
+            Tree-only diversity value.
+        """
         raise PhyloZooNotImplementedError(
             "TreeDiversity.compute_diversity is not implemented yet."
         )
@@ -29,7 +52,25 @@ class TreeDiversity:
         costs: Mapping[str, int] | None = None,
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
-        """Solve tree-only diversity maximization."""
+        """
+        Solve tree-only diversity maximization.
+
+        Parameters
+        ----------
+        network : DirectedPhyNetwork
+            Input phylogenetic network.
+        budget : int
+            Integer budget.
+        costs : Mapping[str, int] | None, optional
+            Optional taxon costs.
+        **kwargs : Any
+            Unused optimization options.
+
+        Returns
+        -------
+        tuple[float, Set[str]]
+            Objective value and selected taxa.
+        """
         raise PhyloZooNotImplementedError(
             "TreeDiversity.solve_maximization is not implemented yet."
         )

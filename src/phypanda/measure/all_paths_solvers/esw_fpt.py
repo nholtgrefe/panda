@@ -88,8 +88,11 @@ class _DPInstance:
 
     def _fill_dp_table(self, k: int) -> None:
         """Fill DP table bottom-up for budget ``k`` in unit-cost mode."""
+        # Nested dictionary [vertex][l][phi]. First entry is the DP value and
+        # second entry stores a backtracking pointer.
         self.table = defaultdict(lambda: defaultdict(dict))
         leaves = self.network.leaves
+        # DFS postorder yields a bottom-up traversal on the tree extension.
         for v in nx.dfs_postorder_nodes(self.tree_extension.tree):
             if v in leaves:
                 self._process_leaf_node(v, k)
@@ -98,21 +101,27 @@ class _DPInstance:
 
     def _process_leaf_node(self, v: Any, k: int) -> None:
         """Fill DP entries for a leaf node."""
+        # scanwidth bag of v
         GW_v = self.GW.get(v, set())
         for phi in powerset(GW_v):
             phi_frozen = frozenset(phi)
             for l in range(k + 1):
                 if l == 0:
+                    # Base case: no taxa selected.
                     dp = 0.0 if len(phi) == 0 else self.minus_infinity
                     pointer = None
                 else:
+                    # Selecting a leaf contributes the incident entering edges
+                    # that remain active in phi.
                     dp = sum(self._get_branch_length(u, w) for (u, w) in phi)
                     pointer = (0,)
                 self.table[v][l][phi_frozen] = (dp, pointer)
 
     def _process_non_leaf_node(self, v: Any, k: int) -> None:
         """Fill DP entries for a non-leaf node."""
+        # scanwidth bag of v
         GW_v = self.GW.get(v, set())
+        # delta_in and delta_out for v in the network.
         delta_in_v = {
             (u, v) for u, _, _ in self.network.incident_parent_edges(v, keys=True)
         }
@@ -120,6 +129,7 @@ class _DPInstance:
             (v, w) for _, w, _ in self.network.incident_child_edges(v, keys=True)
         }
 
+        # children of v in the tree extension
         children = list(self.tree_extension.tree.successors(v))
         GW_children = [self.GW.get(child, set()) for child in children]
 
@@ -127,8 +137,11 @@ class _DPInstance:
             phi_frozen = frozenset(phi)
             phi_len = len(phi)
             phi_delta_in_v = phi & delta_in_v
+            # Heuristic lower bound from the trivial hitting-set argument.
             bound = math.ceil(phi_len / self.m) if self.m > 0 else 0
+            # Omega(phi ∩ delta_in(v))
             val3 = sum(self._get_branch_length(u, w) for (u, w) in phi_delta_in_v)
+            # All combinations (phi ∪ psi) with non-empty psi ⊆ delta_out(v).
             phi_psi_subsets = [phi | psi for psi in powerset(delta_out_v) if len(psi) > 0]
             phi_psi_GW_subsets: list[list[frozenset[tuple[Any, Any]]]] = []
             for i in range(len(children)):
@@ -140,14 +153,17 @@ class _DPInstance:
 
             for l in range(k + 1):
                 if l == 0:
+                    # Base case: l = 0
                     dp = 0.0 if phi_len == 0 else self.minus_infinity
                     pointer = None
                 elif l < bound:
+                    # Pruning: impossible to hit all active edges with < bound taxa.
                     dp = self.minus_infinity
                     pointer = None
                 else:
                     dp = self.minus_infinity - 1
                     pointer = None
+                    # Case: v has one child
                     if len(children) == 1:
                         u = children[0]
                         if len(phi_delta_in_v) == 0 and v != self.root:
@@ -157,6 +173,7 @@ class _DPInstance:
                             )[0]
                             pointer = (1, (u, l, S))
                         else:
+                            # Deterministic subset ordering for stable tie-breaking.
                             sorted_subsets = sorted(
                                 phi_psi_GW_subsets[0],
                                 key=lambda s: (self._solution_set_key(s), id(s)),
@@ -170,6 +187,8 @@ class _DPInstance:
                                 if val > dp:
                                     should_update = True
                                 elif val == dp and pointer is not None:
+                                    # Deterministic tie-breaking based on
+                                    # lexicographic subset keys.
                                     current_S = pointer[1][2]
                                     if self._solution_set_key(S) < self._solution_set_key(current_S):
                                         should_update = True
@@ -179,6 +198,7 @@ class _DPInstance:
                                     dp = val
                                     pointer = (1, (u, l, S))
 
+                    # Case: v has two children
                     elif len(children) == 2:
                         u, w = children
                         if len(phi_delta_in_v) == 0 and v != self.root:
@@ -196,6 +216,7 @@ class _DPInstance:
                                 if val > dp:
                                     should_update = True
                                 elif val == dp and pointer is not None:
+                                    # Deterministic tie-breaking among equal scores.
                                     current_S1 = pointer[1][2]
                                     current_S2 = pointer[2][2]
                                     if (
@@ -215,6 +236,7 @@ class _DPInstance:
                                     key=lambda i: self._solution_set_key(phi_psi_GW_subsets[0][i])
                                 )
                                 for i in indices:
+                                    # Iterate coupled subset states for both children.
                                     S1 = phi_psi_GW_subsets[0][i]
                                     val1 = self.table.get(u, {}).get(l_prime, {}).get(
                                         S1, (self.minus_infinity, None)
@@ -228,6 +250,7 @@ class _DPInstance:
                                     if val > dp:
                                         should_update = True
                                     elif val == dp and pointer is not None:
+                                        # Deterministic tie-breaking on (S1, S2).
                                         current_S1 = pointer[1][2]
                                         current_S2 = pointer[2][2]
                                         solution_key = (
@@ -256,13 +279,17 @@ class _DPInstance:
         """Reconstruct selected leaves from DP pointers."""
         pointer = self.table.get(v, {}).get(l, {}).get(phi_frozen, (None, None))[1]
         if pointer is None:
+            # Invalid/empty state contributes no selected taxa.
             return set()
         if pointer[0] == 0:
+            # Leaf-state marker.
             return {v}
         if pointer[0] == 1:
+            # Single-child pointer: recurse into child state.
             child, l_child, phi_child = pointer[1]
             return self._backtrack_solution(child, l_child, phi_child)
         if pointer[0] == 2:
+            # Two-child pointer: union both child solutions.
             (u, l1, phi_u) = pointer[1]
             (w, l2, phi_w) = pointer[2]
             return self._backtrack_solution(
@@ -285,11 +312,47 @@ def solve_esw_fpt(
     network: DirectedPhyNetwork,
     budget: int,
     costs: Mapping[str, int] | None = None,
-    tree_extension: str | TreeExtension = "xp",
+    tree_extension: TreeExtension | None = None,
     **kwargs: Any,
 ) -> tuple[float, Set[str]]:
     """
     Solve unit-cost MAPPD exactly using edge-scanwidth FPT dynamic programming.
+
+    Parameters
+    ----------
+    network : DirectedPhyNetwork
+        Input phylogenetic network.
+    budget : int
+        Number of taxa to select (unit-cost mode).
+    costs : Mapping[str, int] | None, optional
+        Taxon costs. Only unit costs are currently supported.
+    tree_extension : TreeExtension | None, default=None
+        Optional precomputed tree extension. If ``None``, a tree extension is
+        computed via :func:`scanwidth.edge_scanwidth`.
+    **kwargs : Any
+        Additional keyword arguments passed to ``edge_scanwidth`` when
+        ``tree_extension`` is ``None``.
+
+    Returns
+    -------
+    tuple[float, Set[str]]
+        Optimal all-paths objective value and selected taxa labels.
+
+    Raises
+    ------
+    PhyloZooValueError
+        If budget is out of bounds or the network has parallel edges.
+    PhyloZooNotImplementedError
+        If non-unit costs are requested.
+    PhyloZooRuntimeError
+        If tree-extension computation fails.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # value, taxa = pp.all_paths.solve_maximization(
+    ... #     network, budget=5, algorithm="esw_fpt"
+    ... # )
     """
     if budget < 0 or budget > len(network.taxa):
         raise PhyloZooValueError(
@@ -309,12 +372,12 @@ def solve_esw_fpt(
     working_network = network
     if not is_binary(network):
         working_network = binary_resolution(network)
-        if isinstance(tree_extension, TreeExtension):
-            tree_extension = "xp"
+        if tree_extension is not None:
+            tree_extension = None
 
-    if not isinstance(tree_extension, TreeExtension):
+    if tree_extension is None:
         dag = DAG(working_network._graph._graph)
-        res = edge_scanwidth(dag, algorithm=tree_extension, **kwargs)
+        res = edge_scanwidth(dag, **kwargs)
         if res[0] is None:
             raise PhyloZooRuntimeError("Failed to compute tree extension")
         _, extension = res

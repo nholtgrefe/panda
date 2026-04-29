@@ -13,6 +13,13 @@ from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 class DiversityMeasure(Protocol):
     """
     Protocol defining the interface for diversity measures.
+
+    Notes
+    -----
+    Concrete measures expose two operations:
+
+    - ``compute_diversity`` for scoring a fixed taxon set.
+    - ``solve_maximization`` for selecting taxa under a budget.
     """
 
     def compute_diversity(
@@ -37,6 +44,10 @@ class DiversityMeasure(Protocol):
         -------
         float
             Diversity value.
+
+        Examples
+        --------
+        >>> # measure.compute_diversity(network, {"a", "b"})
         """
         ...
 
@@ -70,6 +81,10 @@ class DiversityMeasure(Protocol):
         ------
         PhyloZooNotImplementedError
             If the concrete measure does not support optimization.
+
+        Examples
+        --------
+        >>> # measure.solve_maximization(network, budget=5)
         """
         raise PhyloZooNotImplementedError(
             "This measure does not implement custom optimization."

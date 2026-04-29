@@ -12,6 +12,11 @@ from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 class MinTreeDiversity:
     """
     Minimum displayed-tree diversity measure.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # pp.min_tree.compute_diversity(network, {"a"})
     """
 
     def compute_diversity(
@@ -36,6 +41,11 @@ class MinTreeDiversity:
         -------
         float
             Minimum all-paths diversity value across displayed trees.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # pp.min_tree.compute_diversity(network, {"a", "b"})  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MinTreeDiversity.compute_diversity is not implemented yet."
@@ -54,6 +64,11 @@ class MinTreeDiversity:
         Notes
         -----
         This exact optimizer is not implemented yet.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # pp.min_tree.solve_maximization(network, budget=5)  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MinTreeDiversity.solve_maximization is not implemented yet."

@@ -21,6 +21,11 @@ def powerset(s: set[Any]) -> Iterator[set[Any]]:
     ------
     Iterator[set[Any]]
         Subsets of ``s``.
+
+    Examples
+    --------
+    >>> list(powerset({"a", "b"}))
+    [set(), {'a'}, {'b'}, {'a', 'b'}]
     """
     s_list = tuple(sorted(s, key=str))
     for r in range(len(s_list) + 1):

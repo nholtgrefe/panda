@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Set
 
 import networkx as nx
+from scanwidth import TreeExtension
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooNotImplementedError, PhyloZooValueError
 
@@ -15,7 +16,21 @@ def _all_paths_diversity_for_taxa(
     network: DirectedPhyNetwork,
     taxa: Set[str],
 ) -> float:
-    """Compute all-paths diversity for a fixed taxon set."""
+    """
+    Compute all-paths diversity for a fixed taxon set.
+
+    Parameters
+    ----------
+    network : DirectedPhyNetwork
+        Input phylogenetic network.
+    taxa : Set[str]
+        Taxa to retain.
+
+    Returns
+    -------
+    float
+        Total branch length of the induced ancestral subnetwork.
+    """
     if not taxa:
         return 0.0
 
@@ -39,7 +54,14 @@ def _all_paths_diversity_for_taxa(
 
 
 class AllPathsDiversity:
-    """All-paths diversity measure."""
+    """
+    All-paths diversity measure.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # value = pp.all_paths.compute_diversity(network, {"a", "b"})
+    """
 
     _ALGORITHM_REGISTRY = {
         "esw_fpt": solve_esw_fpt,
@@ -51,7 +73,28 @@ class AllPathsDiversity:
         taxa: Set[str],
         **kwargs: Any,
     ) -> float:
-        """Compute all-paths diversity for a taxon set."""
+        """
+        Compute all-paths diversity for a taxon set.
+
+        Parameters
+        ----------
+        network : DirectedPhyNetwork
+            Input phylogenetic network.
+        taxa : Set[str]
+            Selected taxa.
+        **kwargs : Any
+            Unused measure-specific options.
+
+        Returns
+        -------
+        float
+            All-paths diversity value.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # value = pp.all_paths.compute_diversity(network, {"a", "b"})
+        """
         return _all_paths_diversity_for_taxa(network, taxa)
 
     def solve_maximization(
@@ -60,6 +103,7 @@ class AllPathsDiversity:
         budget: int,
         costs: Mapping[str, int] | None = None,
         algorithm: str = "esw_fpt",
+        tree_extension: TreeExtension | None = None,
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
         """
@@ -75,8 +119,24 @@ class AllPathsDiversity:
             Taxon costs.
         algorithm : str, optional
             Solver backend name. Default is ``"esw_fpt"``.
+        tree_extension : TreeExtension | None, optional
+            Optional precomputed tree extension for compatible solvers.
+            If ``None``, the solver computes one using ``scanwidth`` defaults.
         **kwargs : Any
-            Solver-specific options (for example ``tree_extension``).
+            Solver-specific options forwarded to the selected backend.
+
+        Returns
+        -------
+        tuple[float, Set[str]]
+            Objective value and selected taxa.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # value, taxa = pp.all_paths.solve_maximization(network, budget=5)
+        >>> # value2, taxa2 = pp.all_paths.solve_maximization(
+        ... #     network, budget=5, algorithm="esw_fpt", tree_extension=None
+        ... # )
         """
         solver = self._ALGORITHM_REGISTRY.get(algorithm)
         if solver is None:
@@ -88,6 +148,7 @@ class AllPathsDiversity:
             network=network,
             budget=budget,
             costs=costs,
+            tree_extension=tree_extension,
             **kwargs,
         )
 

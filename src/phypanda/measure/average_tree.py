@@ -9,7 +9,14 @@ from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 
 
 class AverageTreeDiversity:
-    """Average displayed-tree diversity measure stub."""
+    """
+    Average displayed-tree diversity measure stub.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # pp.average_tree.compute_diversity(network, {"a"})
+    """
 
     def compute_diversity(
         self,
@@ -17,7 +24,23 @@ class AverageTreeDiversity:
         taxa: Set[str],
         **kwargs: Any,
     ) -> float:
-        """Compute average displayed-tree diversity."""
+        """
+        Compute average displayed-tree diversity.
+
+        Parameters
+        ----------
+        network : DirectedPhyNetwork
+            Input phylogenetic network.
+        taxa : Set[str]
+            Selected taxa.
+        **kwargs : Any
+            Unused measure-specific options.
+
+        Returns
+        -------
+        float
+            Average displayed-tree diversity value.
+        """
         raise PhyloZooNotImplementedError(
             "AverageTreeDiversity.compute_diversity is not implemented yet."
         )
@@ -29,7 +52,25 @@ class AverageTreeDiversity:
         costs: Mapping[str, int] | None = None,
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
-        """Solve average displayed-tree diversity maximization."""
+        """
+        Solve average displayed-tree diversity maximization.
+
+        Parameters
+        ----------
+        network : DirectedPhyNetwork
+            Input phylogenetic network.
+        budget : int
+            Integer budget.
+        costs : Mapping[str, int] | None, optional
+            Optional taxon costs.
+        **kwargs : Any
+            Unused optimization options.
+
+        Returns
+        -------
+        tuple[float, Set[str]]
+            Objective value and selected taxa.
+        """
         raise PhyloZooNotImplementedError(
             "AverageTreeDiversity.solve_maximization is not implemented yet."
         )

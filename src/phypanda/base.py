@@ -110,6 +110,11 @@ def diversity(
     ------
     PhyloZooValueError
         If one or more taxa are not present in the network.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # value = pp.diversity(network, {"a", "b"}, measure=pp.all_paths)
     """
     network_taxa = set(network.taxa)
     if not taxa.issubset(network_taxa):
@@ -142,6 +147,11 @@ def marginal_diversities(
     -------
     Dict[str, float]
         Mapping from taxon to marginal gain/loss relative to ``saved_taxa``.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # marg = pp.marginal_diversities(network, {"a"}, measure=pp.all_paths)
     """
     total_div = diversity(network, saved_taxa, measure, **kwargs)
     marginal: Dict[str, float] = {}
@@ -188,6 +198,12 @@ def greedy_max_diversity(
     -------
     tuple[float, Set[str]]
         Greedy objective value and selected taxa.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # value, taxa = pp.greedy_max_diversity(network, 5, measure=pp.all_paths)
+    >>> # sorted(taxa)  # doctest: +SKIP
     """
     _validate_budget(budget)
     normalized_costs = _normalize_costs(network, costs)
@@ -252,6 +268,12 @@ def solve_max_diversity(
     -------
     tuple[float, Set[str]]
         Optimal objective value and selected taxa.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # value, taxa = pp.solve_max_diversity(network, 5, measure=pp.all_paths)
+    >>> # len(taxa) <= 5  # doctest: +SKIP
     """
     _validate_budget(budget)
     normalized_costs = _normalize_costs(network, costs)

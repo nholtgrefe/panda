@@ -12,6 +12,11 @@ from phylozoo.utils.exceptions import PhyloZooNotImplementedError
 class MaxTreeDiversity:
     """
     Maximum displayed-tree diversity measure.
+
+    Examples
+    --------
+    >>> import phypanda as pp
+    >>> # pp.max_tree.compute_diversity(network, {"a"})
     """
 
     def compute_diversity(
@@ -36,6 +41,11 @@ class MaxTreeDiversity:
         -------
         float
             Maximum all-paths diversity value across displayed trees.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # pp.max_tree.compute_diversity(network, {"a", "b"})  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MaxTreeDiversity.compute_diversity is not implemented yet."
@@ -54,6 +64,11 @@ class MaxTreeDiversity:
         Notes
         -----
         This exact optimizer is not implemented yet.
+
+        Examples
+        --------
+        >>> import phypanda as pp
+        >>> # pp.max_tree.solve_maximization(network, budget=5)  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MaxTreeDiversity.solve_maximization is not implemented yet."
