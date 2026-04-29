@@ -31,10 +31,13 @@ class _DPInstance:
         self.network = network
         self.tree_extension = tree_extension
         self.root = network.root_node
+        self.graph = network._graph
 
+        self.edge_pairs: list[tuple[Any, Any]] = []
         total_weight = 0.0
-        for _, _, _, data in network._graph.edges(keys=True, data=True):
-            total_weight += data.get("branch_length", 1.0)
+        for u, v, _ in self.graph.edges(keys=True):
+            self.edge_pairs.append((u, v))
+            total_weight += self.network.get_branch_length(u, v) or 1.0
         self.minus_infinity = -2 * total_weight - 1
 
         self.GW = self._initialize_GW()
@@ -55,15 +58,13 @@ class _DPInstance:
 
     def _initialize_GW(self) -> dict[Any, set[tuple[Any, Any]]]:
         """Build scanwidth bags ``GW_v`` for all vertices ``v``."""
-        res: dict[Any, set[tuple[Any, Any]]] = {
-            v: set() for v in self.network._graph.nodes()
-        }
+        res: dict[Any, set[tuple[Any, Any]]] = {v: set() for v in self.graph.nodes()}
 
-        for v in self.network._graph.nodes():
+        for v in self.graph.nodes():
             sink = set(nx.descendants(self.tree_extension.tree, v))
             sink.add(v)
 
-            for u, w, _ in self.network._graph.edges(keys=True):
+            for u, w in self.edge_pairs:
                 if u not in sink and w in sink:
                     res[v].add((u, w))
 
@@ -71,7 +72,7 @@ class _DPInstance:
 
     def _max_edge_offspring_count(self) -> int:
         """Compute maximum leaf edge-offspring count used for pruning."""
-        indeg = {v: self.network.indegree(v) for v in self.network._graph.nodes()}
+        indeg = {v: self.network.indegree(v) for v in self.graph.nodes()}
         edge_count: dict[Any, int] = {}
 
         def count_edges(u: Any) -> int:
@@ -88,8 +89,9 @@ class _DPInstance:
     def _fill_dp_table(self, k: int) -> None:
         """Fill DP table bottom-up for budget ``k`` in unit-cost mode."""
         self.table = defaultdict(lambda: defaultdict(dict))
+        leaves = self.network.leaves
         for v in nx.dfs_postorder_nodes(self.tree_extension.tree):
-            if v in self.network.leaves:
+            if v in leaves:
                 self._process_leaf_node(v, k)
             else:
                 self._process_non_leaf_node(v, k)
