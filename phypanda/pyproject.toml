@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "phypanda"
 version = "2.0.0.dev"
-description = "package containing the PaNDA framework for exploring, visualizing and maximizing phylogenetic diversity in phylogenetic networks"
+description = "package containing the PaNDA framework for exploring and maximizing phylogenetic diversity in phylogenetic networks"
 authors = [
     { name = "N. Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
 ]
@@ -16,7 +16,7 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 dependencies = [
     "phylozoo >= 0.1.1",
     "networkx >= 3.0",
-    "scanwidth @ git+https://github.com/nholtgrefe/scanwidth.git@main#subdirectory=scanwidth",
+    "scanwidth >= 0.2.2",
 ]
 
 [tool.setuptools.packages.find]
