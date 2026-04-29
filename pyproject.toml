@@ -11,13 +11,26 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.7"
-classifiers = ["License :: OSI Approved :: MIT License"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "phylozoo >= 0.1.1",
     "networkx >= 3.0",
     "scanwidth >= 0.2.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[project.urls]
+Homepage = "https://github.com/nholtgrefe/panda"
+Repository = "https://github.com/nholtgrefe/panda"
 
 [tool.setuptools.packages.find]
 where = ["src"]

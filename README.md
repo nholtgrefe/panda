@@ -9,10 +9,10 @@ The **PaNDA** software is easy to install and can either be run with a graphical
 - [gui](https://github.com/nholtgrefe/panda/tree/main/gui), for the graphical user-interface;
 - [phypanda](https://github.com/nholtgrefe/panda/tree/main/phypanda), for the corresponding Python package.
 
-To test out the GUI or the Python package, we recommend using the Xiphophorus phylogenetic network in the file [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/data/exp2_xiphophorus_network.txt).
+To test out the GUI or the Python package, we recommend using the Xiphophorus phylogenetic network in the file [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/experiments/exp2_xiphophorus_network.txt).
 
 ## Supplementary data and scripts
-The simulation results, data sets and used scripts from the experiments in the paper are all in the folder [data](https://github.com/nholtgrefe/panda/tree/main/data). For a more detailed explanation of these files, see the `README.md` file in the folder.
+The simulation results, data sets and used scripts from the experiments in the paper are all in the folder [experiments](https://github.com/nholtgrefe/panda/tree/main/experiments). For a more detailed explanation of these files, see the `README.md` file in the folder.
 
 ## Citation
 If you use any of the code in this repository, please cite the corresponding paper:
