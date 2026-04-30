@@ -9,7 +9,7 @@ from scanwidth import TreeExtension
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooNotImplementedError, PhyloZooValueError
 
-from .all_paths_solvers import solve_esw_fpt
+from .all_paths_solvers import solve_esw_fpt, solve_nsw_fpt_budget
 
 
 def _all_paths_diversity_for_taxa(
@@ -65,6 +65,7 @@ class AllPathsDiversity:
 
     _ALGORITHM_REGISTRY = {
         "esw_fpt": solve_esw_fpt,
+        "nsw_fpt_budget": solve_nsw_fpt_budget,
     }
 
     def compute_diversity(

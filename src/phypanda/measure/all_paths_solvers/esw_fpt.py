@@ -354,15 +354,21 @@ def solve_esw_fpt(
     ... #     network, budget=5, algorithm="esw_fpt"
     ... # )
     """
-    if budget < 0 or budget > len(network.taxa):
+    if budget < 0:
         raise PhyloZooValueError(
-            f"budget must be between 0 and {len(network.taxa)}, got {budget}"
+            f"budget must be non-negative, got {budget}"
         )
 
     if costs is not None and any(cost != 1 for cost in costs.values()):
         raise PhyloZooNotImplementedError(
             "esw_fpt currently supports only unit costs."
         )
+
+    if budget >= len(network.taxa):
+        from ..all_paths import all_paths
+
+        all_taxa = set(network.taxa)
+        return all_paths.compute_diversity(network, all_taxa), all_taxa
 
     if has_parallel_edges(network):
         raise PhyloZooValueError(
