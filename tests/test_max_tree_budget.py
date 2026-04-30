@@ -1,15 +1,13 @@
-"""Tests for the node-scanwidth budgeted all-paths solver."""
+"""Tests for MaxTreePD budgeted DP solver."""
 
 from __future__ import annotations
 
 import pytest
-from scanwidth import DAG, node_scanwidth
-from scanwidth import TreeExtension
+from scanwidth import DAG, TreeExtension, node_scanwidth
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooValueError
 
 import phypanda as pp
-from tests.apd_baselines import APD_BASELINES, APD_BUDGETS
 from tests.networks_exp1 import build_network
 
 
@@ -32,56 +30,55 @@ def _small_tree_network() -> DirectedPhyNetwork:
     return DirectedPhyNetwork(edges=edges, nodes=nodes)
 
 
-def test_nsw_fpt_budget_matches_esw_on_unit_costs_exp1_networks() -> None:
-    """For unit costs, NSW and ESW should match values on selected exp1 networks."""
-    for network_id in sorted(APD_BASELINES):
-        for budget in APD_BUDGETS:
-            esw_value, _ = pp.solve_max_diversity(
-                build_network(network_id),
-                budget=budget,
-                measure=pp.all_paths,
-                algorithm="esw_fpt",
-            )
-            nsw_value, _ = pp.solve_max_diversity(
-                build_network(network_id),
-                budget=budget,
-                measure=pp.all_paths,
-                algorithm="nsw_fpt_budget",
-            )
-            assert nsw_value == pytest.approx(esw_value)
-
-
-def test_nsw_fpt_budget_with_explicit_tree_extension() -> None:
-    """Accept explicit tree extension and match default-extension result."""
+def test_max_tree_matches_all_paths_on_tree_instance() -> None:
+    """On trees, MaxTreePD objective matches AllPaths objective."""
     network = _small_tree_network()
     costs = {"a": 2, "b": 1, "c": 2, "d": 1}
     budget = 3
 
+    max_tree_value, max_tree_taxa = pp.solve_max_diversity(
+        network,
+        budget=budget,
+        costs=costs,
+        measure=pp.max_tree,
+    )
+    all_paths_value, all_paths_taxa = pp.solve_max_diversity(
+        network,
+        budget=budget,
+        costs=costs,
+        measure=pp.all_paths,
+        algorithm="nsw_fpt_budget",
+    )
+
+    assert max_tree_value == all_paths_value
+    assert max_tree_taxa == all_paths_taxa
+
+
+def test_max_tree_accepts_explicit_tree_extension() -> None:
+    """MaxTree solver accepts explicit node-scanwidth tree extension."""
+    network = build_network("00001")
+    budget = 2
     dag = DAG(network._graph._graph)
     _, extension = node_scanwidth(dag)
     tree_extension: TreeExtension = extension.to_canonical_tree_extension()
 
-    default_value, default_taxa = pp.solve_max_diversity(
+    value_default, taxa_default = pp.solve_max_diversity(
         network,
         budget=budget,
-        costs=costs,
-        measure=pp.all_paths,
-        algorithm="nsw_fpt_budget",
+        measure=pp.max_tree,
     )
-    explicit_value, explicit_taxa = pp.solve_max_diversity(
+    value_explicit, taxa_explicit = pp.solve_max_diversity(
         network,
         budget=budget,
-        costs=costs,
-        measure=pp.all_paths,
-        algorithm="nsw_fpt_budget",
+        measure=pp.max_tree,
         tree_extension=tree_extension,
     )
 
-    assert explicit_value == default_value
-    assert explicit_taxa == default_taxa
+    assert value_explicit == value_default
+    assert taxa_explicit == taxa_default
 
 
-def test_nsw_fpt_budget_rejects_zero_costs() -> None:
+def test_max_tree_rejects_zero_costs() -> None:
     """Zero taxon costs are rejected (costs must be strictly positive)."""
     network = _small_tree_network()
     with pytest.raises(PhyloZooValueError, match="positive integer|positive"):
@@ -89,12 +86,11 @@ def test_nsw_fpt_budget_rejects_zero_costs() -> None:
             network,
             budget=2,
             costs={"a": 0, "b": 1, "c": 1, "d": 1},
-            measure=pp.all_paths,
-            algorithm="nsw_fpt_budget",
+            measure=pp.max_tree,
         )
 
 
-def test_nsw_fpt_budget_defaults_missing_costs_to_one() -> None:
+def test_max_tree_defaults_missing_costs_to_one() -> None:
     """Missing taxon costs default to unit cost."""
     network = _small_tree_network()
     budget = 3
@@ -105,16 +101,13 @@ def test_nsw_fpt_budget_defaults_missing_costs_to_one() -> None:
         network,
         budget=budget,
         costs=partial_costs,
-        measure=pp.all_paths,
-        algorithm="nsw_fpt_budget",
+        measure=pp.max_tree,
     )
     value_explicit, taxa_explicit = pp.solve_max_diversity(
         network,
         budget=budget,
         costs=explicit_costs,
-        measure=pp.all_paths,
-        algorithm="nsw_fpt_budget",
+        measure=pp.max_tree,
     )
     assert value_partial == value_explicit
     assert taxa_partial == taxa_explicit
-

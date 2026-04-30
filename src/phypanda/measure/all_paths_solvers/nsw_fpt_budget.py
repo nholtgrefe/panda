@@ -14,7 +14,7 @@ from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.core.network.dnetwork.classifications import has_parallel_edges
 from phylozoo.utils.exceptions import PhyloZooRuntimeError, PhyloZooValueError
 
-from ...utils import _ChildMergeDP, powerset
+from ...utils import _ChildMergeDP, normalize_costs, powerset
 
 
 class _DPInstance:
@@ -282,7 +282,8 @@ def solve_nsw_fpt_budget(
     budget : int
         Integer budget ``B``.
     costs : Mapping[str, int] | None, optional
-        Integer costs per taxon. If ``None``, unit costs are used.
+        Integer costs per taxon. If ``None`` or missing for some taxa, unit
+        costs are used for those taxa.
     tree_extension : TreeExtension | None, optional
         Optional precomputed tree extension. If ``None``, one is computed via
         :func:`scanwidth.node_scanwidth`.
@@ -309,20 +310,7 @@ def solve_nsw_fpt_budget(
         )
 
     taxa = set(network.taxa)
-    if costs is None:
-        normalized_costs = {taxon: 1 for taxon in taxa}
-    else:
-        missing = taxa - set(costs.keys())
-        if missing:
-            raise PhyloZooValueError(f"Missing costs for taxa: {missing}")
-        normalized_costs: dict[str, int] = {}
-        for taxon in taxa:
-            cost = costs[taxon]
-            if not isinstance(cost, int) or cost < 0:
-                raise PhyloZooValueError(
-                    f"Cost for taxon '{taxon}' must be a non-negative integer."
-                )
-            normalized_costs[taxon] = cost
+    normalized_costs = normalize_costs(taxa, costs)
 
     total_cost = sum(normalized_costs[taxon] for taxon in taxa)
     if budget >= total_cost:

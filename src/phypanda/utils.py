@@ -5,9 +5,10 @@ General utility helpers for the phypanda package.
 from __future__ import annotations
 
 from itertools import combinations
-from typing import Any, Iterator, Literal
+from typing import Any, Iterator, Literal, Mapping
 
 import numpy as np
+from phylozoo.utils.exceptions import PhyloZooValueError
 
 try:
     from numba import njit
@@ -131,6 +132,49 @@ def powerset(s: set[Any]) -> Iterator[set[Any]]:
     for r in range(len(s_list) + 1):
         for subset in combinations(s_list, r):
             yield set(subset)
+
+
+def normalize_costs(
+    taxa: set[str],
+    costs: Mapping[str, int] | None,
+) -> dict[str, int]:
+    """
+    Normalize and validate integer taxon costs.
+
+    Parameters
+    ----------
+    taxa : set[str]
+        Taxon universe to normalize costs for.
+    costs : Mapping[str, int] | None
+        Optional taxon cost mapping. If ``None``, unit costs are used. Missing
+        taxa in the mapping are assigned unit cost.
+
+    Returns
+    -------
+    dict[str, int]
+        Cost mapping for all taxa in ``taxa``.
+
+    Raises
+    ------
+    PhyloZooValueError
+        If a provided cost is non-integer or non-positive.
+    """
+    if costs is None:
+        return {taxon: 1 for taxon in taxa}
+
+    normalized: dict[str, int] = {}
+    for taxon in taxa:
+        cost = costs.get(taxon, 1)
+        if not isinstance(cost, int):
+            raise PhyloZooValueError(
+                f"Cost for taxon '{taxon}' must be an integer, got {type(cost).__name__}"
+            )
+        if cost <= 0:
+            raise PhyloZooValueError(
+                f"Cost for taxon '{taxon}' must be positive, got {cost}"
+            )
+        normalized[taxon] = cost
+    return normalized
 
 
 class _ChildMergeDP:

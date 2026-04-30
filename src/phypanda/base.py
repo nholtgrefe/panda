@@ -10,53 +10,7 @@ from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooValueError
 
 from .protocol import DiversityMeasure
-
-
-def _normalize_costs(
-    network: DirectedPhyNetwork,
-    costs: Mapping[str, int] | None,
-) -> dict[str, int]:
-    """
-    Normalize and validate integer taxon costs.
-
-    Parameters
-    ----------
-    network : DirectedPhyNetwork
-        Phylogenetic network providing the taxon universe.
-    costs : Mapping[str, int] | None
-        Optional taxon cost mapping. If ``None``, unit costs are used.
-
-    Returns
-    -------
-    dict[str, int]
-        Cost mapping for all taxa in ``network``.
-
-    Raises
-    ------
-    PhyloZooValueError
-        If costs are missing for any taxon, non-integer, or negative.
-    """
-    taxa = set(network.taxa)
-    if costs is None:
-        return {taxon: 1 for taxon in taxa}
-
-    missing = taxa - set(costs.keys())
-    if missing:
-        raise PhyloZooValueError(f"Missing costs for taxa: {missing}")
-
-    normalized: dict[str, int] = {}
-    for taxon in taxa:
-        cost = costs[taxon]
-        if not isinstance(cost, int):
-            raise PhyloZooValueError(
-                f"Cost for taxon '{taxon}' must be an integer, got {type(cost).__name__}"
-            )
-        if cost < 0:
-            raise PhyloZooValueError(
-                f"Cost for taxon '{taxon}' must be non-negative, got {cost}"
-            )
-        normalized[taxon] = cost
-    return normalized
+from .utils import normalize_costs
 
 
 def _validate_budget(budget: int) -> None:
@@ -206,7 +160,7 @@ def greedy_max_diversity(
     >>> # sorted(taxa)  # doctest: +SKIP
     """
     _validate_budget(budget)
-    normalized_costs = _normalize_costs(network, costs)
+    normalized_costs = normalize_costs(set(network.taxa), costs)
 
     saved_taxa: set[str] = set()
     remaining_budget = budget
@@ -276,7 +230,7 @@ def solve_max_diversity(
     >>> # len(taxa) <= 5  # doctest: +SKIP
     """
     _validate_budget(budget)
-    normalized_costs = _normalize_costs(network, costs)
+    normalized_costs = normalize_costs(set(network.taxa), costs)
     return measure.solve_maximization(
         network,
         budget=budget,
