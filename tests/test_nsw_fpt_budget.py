@@ -3,33 +3,12 @@
 from __future__ import annotations
 
 import pytest
-from scanwidth import DAG, node_scanwidth
-from scanwidth import TreeExtension
-from phylozoo.core.network.dnetwork import DirectedPhyNetwork
+from scanwidth import DAG, TreeExtension, node_scanwidth
 from phylozoo.utils.exceptions import PhyloZooValueError
 
 import phypanda as pp
-from tests.apd_baselines import APD_BASELINES, APD_BUDGETS
-from tests.networks_exp1 import build_network
-
-
-def _small_tree_network() -> DirectedPhyNetwork:
-    """Create a small weighted rooted tree with four taxa."""
-    edges = [
-        {"u": "r", "v": "u", "branch_length": 1.0},
-        {"u": "r", "v": "v", "branch_length": 1.0},
-        {"u": "u", "v": "a", "branch_length": 4.0},
-        {"u": "u", "v": "b", "branch_length": 2.0},
-        {"u": "v", "v": "c", "branch_length": 3.0},
-        {"u": "v", "v": "d", "branch_length": 1.5},
-    ]
-    nodes = [
-        ("a", {"label": "a"}),
-        ("b", {"label": "b"}),
-        ("c", {"label": "c"}),
-        ("d", {"label": "d"}),
-    ]
-    return DirectedPhyNetwork(edges=edges, nodes=nodes)
+from tests.baselines import APD_BASELINES, APD_BUDGETS, SMALL_TREE_BUDGET_COSTS
+from tests.test_networks import build_network, build_small_tree_network
 
 
 def test_nsw_fpt_budget_matches_esw_on_unit_costs_exp1_networks() -> None:
@@ -53,8 +32,8 @@ def test_nsw_fpt_budget_matches_esw_on_unit_costs_exp1_networks() -> None:
 
 def test_nsw_fpt_budget_with_explicit_tree_extension() -> None:
     """Accept explicit tree extension and match default-extension result."""
-    network = _small_tree_network()
-    costs = {"a": 2, "b": 1, "c": 2, "d": 1}
+    network = build_small_tree_network()
+    costs = SMALL_TREE_BUDGET_COSTS
     budget = 3
 
     dag = DAG(network._graph._graph)
@@ -83,7 +62,7 @@ def test_nsw_fpt_budget_with_explicit_tree_extension() -> None:
 
 def test_nsw_fpt_budget_rejects_zero_costs() -> None:
     """Zero taxon costs are rejected (costs must be strictly positive)."""
-    network = _small_tree_network()
+    network = build_small_tree_network()
     with pytest.raises(PhyloZooValueError, match="positive integer|positive"):
         pp.solve_max_diversity(
             network,
@@ -96,7 +75,7 @@ def test_nsw_fpt_budget_rejects_zero_costs() -> None:
 
 def test_nsw_fpt_budget_defaults_missing_costs_to_one() -> None:
     """Missing taxon costs default to unit cost."""
-    network = _small_tree_network()
+    network = build_small_tree_network()
     budget = 3
     partial_costs = {"a": 2}
     explicit_costs = {"a": 2, "b": 1, "c": 1, "d": 1}
@@ -117,4 +96,3 @@ def test_nsw_fpt_budget_defaults_missing_costs_to_one() -> None:
     )
     assert value_partial == value_explicit
     assert taxa_partial == taxa_explicit
-

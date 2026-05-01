@@ -4,37 +4,20 @@ from __future__ import annotations
 
 import pytest
 from scanwidth import DAG, TreeExtension, node_scanwidth
-from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.utils.exceptions import PhyloZooValueError
 
 import phypanda as pp
-from tests.networks_exp1 import build_network
+from tests.baselines import SMALL_TREE_BUDGET_COSTS, SMALL_TREE_BUDGET_MAXIMIZATION
+from tests.test_networks import build_network, build_small_tree_network
 
 
-def _small_tree_network() -> DirectedPhyNetwork:
-    """Create a small weighted rooted tree with four taxa."""
-    edges = [
-        {"u": "r", "v": "u", "branch_length": 1.0},
-        {"u": "r", "v": "v", "branch_length": 1.0},
-        {"u": "u", "v": "a", "branch_length": 4.0},
-        {"u": "u", "v": "b", "branch_length": 2.0},
-        {"u": "v", "v": "c", "branch_length": 3.0},
-        {"u": "v", "v": "d", "branch_length": 1.5},
-    ]
-    nodes = [
-        ("a", {"label": "a"}),
-        ("b", {"label": "b"}),
-        ("c", {"label": "c"}),
-        ("d", {"label": "d"}),
-    ]
-    return DirectedPhyNetwork(edges=edges, nodes=nodes)
-
-
-def test_max_tree_matches_all_paths_on_tree_instance() -> None:
-    """On trees, MaxTreePD objective matches AllPaths objective."""
-    network = _small_tree_network()
-    costs = {"a": 2, "b": 1, "c": 2, "d": 1}
-    budget = 3
+def test_max_tree_matches_baselines_and_all_paths_on_tree() -> None:
+    """On trees, MaxTreePD matches baseline and AllPaths (NSW budget solver)."""
+    network = build_small_tree_network()
+    costs = SMALL_TREE_BUDGET_COSTS
+    budget = SMALL_TREE_BUDGET_MAXIMIZATION["budget"]
+    expected_value = SMALL_TREE_BUDGET_MAXIMIZATION["value"]
+    expected_taxa = SMALL_TREE_BUDGET_MAXIMIZATION["taxa"]
 
     max_tree_value, max_tree_taxa = pp.solve_max_diversity(
         network,
@@ -50,6 +33,8 @@ def test_max_tree_matches_all_paths_on_tree_instance() -> None:
         algorithm="nsw_fpt_budget",
     )
 
+    assert max_tree_value == expected_value
+    assert frozenset(max_tree_taxa) == expected_taxa
     assert max_tree_value == all_paths_value
     assert max_tree_taxa == all_paths_taxa
 
@@ -80,7 +65,7 @@ def test_max_tree_accepts_explicit_tree_extension() -> None:
 
 def test_max_tree_rejects_zero_costs() -> None:
     """Zero taxon costs are rejected (costs must be strictly positive)."""
-    network = _small_tree_network()
+    network = build_small_tree_network()
     with pytest.raises(PhyloZooValueError, match="positive integer|positive"):
         pp.solve_max_diversity(
             network,
@@ -92,7 +77,7 @@ def test_max_tree_rejects_zero_costs() -> None:
 
 def test_max_tree_defaults_missing_costs_to_one() -> None:
     """Missing taxon costs default to unit cost."""
-    network = _small_tree_network()
+    network = build_small_tree_network()
     budget = 3
     partial_costs = {"a": 2}
     explicit_costs = {"a": 2, "b": 1, "c": 1, "d": 1}

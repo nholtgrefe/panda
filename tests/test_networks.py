@@ -1,7 +1,7 @@
-"""Reference experiment networks for regression tests.
+"""Shared phylogenetic networks for regression and unit tests.
 
-These networks are copied from `experiments/exp1_simulated_networks.csv`
-and represented explicitly as edge lists.
+Includes experiment networks from ``experiments/exp1_simulated_networks.csv``
+and a small hand-built tree used across PD measure tests.
 """
 
 from __future__ import annotations
@@ -343,9 +343,26 @@ NETWORK_DEFINITIONS: dict[str, dict[str, Any]] = {'00001': {'edges': [{'branch_l
                      ('t5', {'label': 't5'}),
                      ('t6', {'label': 't6'}),
                      ('t7', {'label': 't7'}),
-                     ('t8', {'label': 't8'})]}}
+                     ('t8', {'label': 't8'})]},
+ 'small_tree': {'edges': [{'branch_length': 1.0, 'u': 'r', 'v': 'u'},
+                          {'branch_length': 1.0, 'u': 'r', 'v': 'v'},
+                          {'branch_length': 4.0, 'u': 'u', 'v': 'a'},
+                          {'branch_length': 2.0, 'u': 'u', 'v': 'b'},
+                          {'branch_length': 3.0, 'u': 'v', 'v': 'c'},
+                          {'branch_length': 1.5, 'u': 'v', 'v': 'd'}],
+                'level': -1,
+                'nodes': [('a', {'label': 'a'}),
+                          ('b', {'label': 'b'}),
+                          ('c', {'label': 'c'}),
+                          ('d', {'label': 'd'})]}}
+
+SMALL_TREE_NETWORK_ID: str = "small_tree"
 
 NETWORK_IDS_BY_LEVEL: dict[int, str] = {0: '00001', 1: '00101', 2: '00201', 3: '00301', 4: '00401'}
+
+EXP1_NETWORK_IDS: tuple[str, ...] = tuple(
+    network_id for _, network_id in sorted(NETWORK_IDS_BY_LEVEL.items())
+)
 
 def build_network(network_id: str) -> DirectedPhyNetwork:
     """Build a test network from explicit edge data.
@@ -353,7 +370,8 @@ def build_network(network_id: str) -> DirectedPhyNetwork:
     Parameters
     ----------
     network_id : str
-        Identifier of a network in ``NETWORK_DEFINITIONS``.
+        Identifier of a network in ``NETWORK_DEFINITIONS`` (including
+        ``SMALL_TREE_NETWORK_ID``).
 
     Returns
     -------
@@ -362,6 +380,17 @@ def build_network(network_id: str) -> DirectedPhyNetwork:
     """
     data = NETWORK_DEFINITIONS[network_id]
     return DirectedPhyNetwork(edges=deepcopy(data["edges"]), nodes=deepcopy(data["nodes"]))
+
+
+def build_small_tree_network() -> DirectedPhyNetwork:
+    """Return the small four-taxon weighted tree used in PD solver tests.
+
+    Returns
+    -------
+    DirectedPhyNetwork
+        Same instance shape as ``build_network(SMALL_TREE_NETWORK_ID)``.
+    """
+    return build_network(SMALL_TREE_NETWORK_ID)
 
 def build_networks_by_level() -> dict[int, DirectedPhyNetwork]:
     """Build one network per level in ascending order.
