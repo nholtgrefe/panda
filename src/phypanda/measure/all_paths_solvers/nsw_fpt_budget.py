@@ -73,7 +73,11 @@ class _DPInstance:
                 raise PhyloZooValueError(f"Leaf node {leaf} has no taxon label.")
             self.leaf_cost[leaf] = self.costs[label]
 
-        self.GW = self._initialize_GW()
+        # Prefer bulk bag extraction from scanwidth for lower Python overhead.
+        self.GW = {
+            v: frozenset(bag)
+            for v, bag in self.tree_extension.node_scanwidth_bags().items()
+        }
         self.table: dict[Any, dict[frozenset[Any], dict[int, float]]] = defaultdict(
             lambda: defaultdict(dict)
         )
@@ -81,13 +85,6 @@ class _DPInstance:
             lambda: defaultdict(dict)
         )
         self._child_merge_dp = _ChildMergeDP(self.minus_infinity)
-
-    def _initialize_GW(self) -> dict[Any, frozenset[Any]]:
-        """Build node-scanwidth bags ``GW(v)`` for all nodes ``v``."""
-        gw: dict[Any, frozenset[Any]] = {}
-        for v in self.graph.nodes():
-            gw[v] = frozenset(self.tree_extension.node_scanwidth_bag(v))
-        return gw
 
     def _incoming_weight(self, v: Any) -> float:
         """Return sum of weights of all incoming network edges to ``v``."""

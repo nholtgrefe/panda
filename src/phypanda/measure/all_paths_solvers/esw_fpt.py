@@ -40,7 +40,11 @@ class _DPInstance:
             total_weight += self.network.get_branch_length(u, v) or 1.0
         self.minus_infinity = -2 * total_weight - 1
 
-        self.GW = self._initialize_GW()
+        # Prefer bulk bag extraction from scanwidth for lower Python overhead.
+        self.GW = {
+            v: set(bag)
+            for v, bag in self.tree_extension.edge_scanwidth_bags().items()
+        }
         self.table: dict[
             Any,
             dict[int, dict[frozenset[tuple[Any, Any]], tuple[float, Any]]],
@@ -55,20 +59,6 @@ class _DPInstance:
     def _get_branch_length(self, u: Any, v: Any) -> float:
         """Return branch length on edge ``(u, v)`` with default 1.0."""
         return self.network.get_branch_length(u, v) or 1.0
-
-    def _initialize_GW(self) -> dict[Any, set[tuple[Any, Any]]]:
-        """Build scanwidth bags ``GW_v`` for all vertices ``v``."""
-        res: dict[Any, set[tuple[Any, Any]]] = {v: set() for v in self.graph.nodes()}
-
-        for v in self.graph.nodes():
-            sink = set(nx.descendants(self.tree_extension.tree, v))
-            sink.add(v)
-
-            for u, w in self.edge_pairs:
-                if u not in sink and w in sink:
-                    res[v].add((u, w))
-
-        return res
 
     def _max_edge_offspring_count(self) -> int:
         """Compute maximum leaf edge-offspring count used for pruning."""
