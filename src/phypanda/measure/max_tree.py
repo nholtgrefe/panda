@@ -305,12 +305,7 @@ class MaxTreeDiversity:
         normalized_costs = normalize_costs(taxa, costs)
 
         total_cost = sum(normalized_costs[taxon] for taxon in taxa)
-        if budget >= total_cost:
-            # The exact compute_diversity routine is not implemented yet.
-            raise PhyloZooNotImplementedError(
-                "MaxTreeDiversity.compute_diversity is not implemented; "
-                "cannot evaluate the all-taxa terminal case yet."
-            )
+        effective_budget = min(budget, total_cost)
 
         if tree_extension is None:
             dag = DAG(network._graph._graph)
@@ -324,7 +319,7 @@ class MaxTreeDiversity:
         dp = _DPInstance(
             network=network,
             tree_extension=tree_extension,
-            budget=budget,
+            budget=effective_budget,
             costs=normalized_costs,
         )
         return dp.solve()

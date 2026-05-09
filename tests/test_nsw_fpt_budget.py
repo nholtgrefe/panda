@@ -60,14 +60,14 @@ def test_nsw_fpt_budget_with_explicit_tree_extension() -> None:
     assert explicit_taxa == default_taxa
 
 
-def test_nsw_fpt_budget_rejects_zero_costs() -> None:
-    """Zero taxon costs are rejected (costs must be strictly positive)."""
+def test_nsw_fpt_budget_rejects_negative_costs() -> None:
+    """Negative taxon costs are rejected."""
     network = build_small_tree_network()
-    with pytest.raises(PhyloZooValueError, match="positive integer|positive"):
+    with pytest.raises(PhyloZooValueError, match="non-negative"):
         pp.solve_max_diversity(
             network,
             budget=2,
-            costs={"a": 0, "b": 1, "c": 1, "d": 1},
+            costs={"a": -1, "b": 1, "c": 1, "d": 1},
             measure=pp.all_paths,
             algorithm="nsw_fpt_budget",
         )

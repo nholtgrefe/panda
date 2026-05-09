@@ -157,7 +157,7 @@ def normalize_costs(
     Raises
     ------
     PhyloZooValueError
-        If a provided cost is non-integer or non-positive.
+        If a provided cost is not an integer or is negative.
     """
     if costs is None:
         return {taxon: 1 for taxon in taxa}
@@ -169,9 +169,9 @@ def normalize_costs(
             raise PhyloZooValueError(
                 f"Cost for taxon '{taxon}' must be an integer, got {type(cost).__name__}"
             )
-        if cost <= 0:
+        if cost < 0:
             raise PhyloZooValueError(
-                f"Cost for taxon '{taxon}' must be positive, got {cost}"
+                f"Cost for taxon '{taxon}' must be non-negative, got {cost}"
             )
         normalized[taxon] = cost
     return normalized

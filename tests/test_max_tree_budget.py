@@ -63,16 +63,59 @@ def test_max_tree_accepts_explicit_tree_extension() -> None:
     assert taxa_explicit == taxa_default
 
 
-def test_max_tree_rejects_zero_costs() -> None:
-    """Zero taxon costs are rejected (costs must be strictly positive)."""
+def test_max_tree_rejects_negative_costs() -> None:
+    """Negative taxon costs are rejected."""
     network = build_small_tree_network()
-    with pytest.raises(PhyloZooValueError, match="positive integer|positive"):
+    with pytest.raises(PhyloZooValueError, match="non-negative"):
         pp.solve_max_diversity(
             network,
             budget=2,
-            costs={"a": 0, "b": 1, "c": 1, "d": 1},
+            costs={"a": -1, "b": 1, "c": 1, "d": 1},
             measure=pp.max_tree,
         )
+
+
+def test_max_tree_zero_taxon_costs_match_nsw() -> None:
+    """Zero taxon costs are allowed; on a tree, MaxTree matches NSW."""
+    network = build_small_tree_network()
+    costs = {"a": 0, "b": 1, "c": 1, "d": 1}
+    budget = 2
+    v_mt, t_mt = pp.solve_max_diversity(
+        network, budget=budget, costs=costs, measure=pp.max_tree
+    )
+    v_nsw, t_nsw = pp.solve_max_diversity(
+        network,
+        budget=budget,
+        costs=costs,
+        measure=pp.all_paths,
+        algorithm="nsw_fpt_budget",
+    )
+    assert v_mt == pytest.approx(v_nsw)
+    assert t_mt == t_nsw
+
+
+def test_max_tree_budget_at_least_total_cost_matches_min_budget() -> None:
+    """Budget >= sum(costs) runs DP with clamped budget (same as B = total_cost)."""
+    network = build_small_tree_network()
+    costs = {t: 1 for t in network.taxa}
+    total = sum(costs[t] for t in network.taxa)
+    v4, t4 = pp.solve_max_diversity(
+        network, budget=total, costs=costs, measure=pp.max_tree
+    )
+    v_big, t_big = pp.solve_max_diversity(
+        network, budget=total + 100, costs=costs, measure=pp.max_tree
+    )
+    assert v_big == pytest.approx(v4)
+    assert t_big == t4
+    nsw_v, nsw_t = pp.solve_max_diversity(
+        network,
+        budget=total,
+        costs=costs,
+        measure=pp.all_paths,
+        algorithm="nsw_fpt_budget",
+    )
+    assert v4 == pytest.approx(nsw_v)
+    assert t4 == nsw_t
 
 
 def test_max_tree_defaults_missing_costs_to_one() -> None:

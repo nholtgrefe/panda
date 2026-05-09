@@ -18,9 +18,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "phylozoo >= 0.1.1",
+    "phylozoo >= 0.1.2",
     "networkx >= 3.0",
-    "scanwidth >= 0.2.4",
+    "scanwidth >= 0.2.5",
 ]
 
 [project.optional-dependencies]
