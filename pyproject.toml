@@ -7,7 +7,7 @@ name = "phypanda"
 version = "2.0.0.dev"
 description = "package containing the PaNDA framework for exploring and maximizing phylogenetic diversity in phylogenetic networks"
 authors = [
-    { name = "N. Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
+    { name = "Niels Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
 ]
 readme = "README.md"
 requires-python = ">=3.7"
@@ -21,6 +21,7 @@ dependencies = [
     "phylozoo >= 0.1.2",
     "networkx >= 3.0",
     "scanwidth >= 0.2.5",
+    "numba >= 0.56",
 ]
 
 [project.optional-dependencies]

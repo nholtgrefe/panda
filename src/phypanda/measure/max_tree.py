@@ -30,6 +30,8 @@ class _DPInstance:
         tree_extension: TreeExtension,
         budget: int,
         costs: Mapping[str, int],
+        *,
+        use_numba: bool = True,
     ) -> None:
         self.network = network
         self.tree_extension = tree_extension
@@ -72,6 +74,7 @@ class _DPInstance:
         self._child_merge_dp = _ChildMergeDP(
             infeasible_value=self.minus_infinity,
             objective="max",
+            use_numba=use_numba,
         )
 
     def _initialize_GW(self) -> dict[Any, frozenset[Any]]:
@@ -284,10 +287,18 @@ class MaxTreeDiversity:
         budget: int,
         costs: Mapping[str, int] | None = None,
         tree_extension: TreeExtension | None = None,
+        *,
+        numba: bool = True,
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
         """
         Solve budgeted MaxTreePD maximization.
+
+        Parameters
+        ----------
+        numba : bool, default=True
+            Use Numba-accelerated child-table merges inside the DP.  Set to
+            ``False`` to force the pure Python merge (useful for debugging).
 
         Examples
         --------
@@ -321,6 +332,7 @@ class MaxTreeDiversity:
             tree_extension=tree_extension,
             budget=effective_budget,
             costs=normalized_costs,
+            use_numba=numba,
         )
         return dp.solve()
 

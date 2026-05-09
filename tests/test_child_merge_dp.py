@@ -196,3 +196,67 @@ def test_child_merge_dp_invalid_objective_raises() -> None:
     """Invalid objective mode raises a ValueError."""
     with pytest.raises(ValueError):
         _ChildMergeDP(infeasible_value=-1.0, objective="median")  # type: ignore[arg-type]
+
+
+def test_child_merge_dp_numba_false_matches_numba_true() -> None:
+    """Pure Python merge matches Numba merge on the same structured instance."""
+    children = ("c1", "c2", "c3")
+    items = frozenset({"a", "b"})
+    budget = 2
+    minus_infinity = -10_000.0
+
+    score_map: dict[tuple[str, frozenset[str], int], float] = {}
+    for child in children:
+        for subset_set in powerset(set(items)):
+            subset = frozenset(subset_set)
+            for budget_value in range(budget + 1):
+                score_map[(child, subset, budget_value)] = float(
+                    (len(subset) * 10)
+                    + (2 * budget_value)
+                    + (1 if child == "c1" else 0)
+                )
+
+    child_tables: list[dict[frozenset[str], dict[int, float]]] = []
+    for child in children:
+        table: dict[frozenset[str], dict[int, float]] = {}
+        for subset_set in powerset(set(items)):
+            subset = frozenset(subset_set)
+            table[subset] = {}
+            for budget_value in range(budget + 1):
+                table[subset][budget_value] = score_map[(child, subset, budget_value)]
+        child_tables.append(table)
+
+    fast = _ChildMergeDP(
+        infeasible_value=minus_infinity,
+        objective="max",
+        use_numba=True,
+    )
+    slow = _ChildMergeDP(
+        infeasible_value=minus_infinity,
+        objective="max",
+        use_numba=False,
+    )
+    v1, ch1 = fast.combine(child_tables=child_tables, items=items, budget=budget)
+    v2, ch2 = slow.combine(child_tables=child_tables, items=items, budget=budget)
+    assert v1 == v2
+    assert ch1 is not None and ch2 is not None
+
+    best = minus_infinity
+    for partition in _bruteforce_ordered_partitions(items, len(children)):
+        for split in _bruteforce_splits(budget, len(children)):
+            candidate = sum(
+                score_map[(child, subset, budget_value)]
+                for child, subset, budget_value in zip(children, partition, split)
+            )
+            if candidate > best:
+                best = candidate
+    assert v1 == best
+    for choice in (ch1, ch2):
+        part_choice, split_choice = choice
+        assert sum(split_choice) == budget
+        assert frozenset().union(*part_choice) == items
+        achieved = sum(
+            score_map[(child, subset, budget_value)]
+            for child, subset, budget_value in zip(children, part_choice, split_choice)
+        )
+        assert achieved == best

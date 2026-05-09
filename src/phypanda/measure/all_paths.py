@@ -103,7 +103,7 @@ class AllPathsDiversity:
         network: DirectedPhyNetwork,
         budget: int,
         costs: Mapping[str, int] | None = None,
-        algorithm: str = "esw_fpt",
+        algorithm: str = "nsw_fpt_budget",
         tree_extension: TreeExtension | None = None,
         **kwargs: Any,
     ) -> tuple[float, Set[str]]:
@@ -119,12 +119,14 @@ class AllPathsDiversity:
         costs : Mapping[str, int] | None, optional
             Taxon costs.
         algorithm : str, optional
-            Solver backend name. Default is ``"esw_fpt"``.
+            Solver backend name. Default is ``"nsw_fpt_budget"``.
         tree_extension : TreeExtension | None, optional
             Optional precomputed tree extension for compatible solvers.
             If ``None``, the solver computes one using ``scanwidth`` defaults.
         **kwargs : Any
-            Solver-specific options forwarded to the selected backend.
+            Solver-specific options forwarded to the selected backend (for
+            example ``numba=False`` with ``algorithm="nsw_fpt_budget"`` to
+            disable Numba in the child-merge DP).
 
         Returns
         -------

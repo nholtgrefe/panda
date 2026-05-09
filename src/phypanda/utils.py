@@ -8,105 +8,100 @@ from itertools import combinations
 from typing import Any, Iterator, Literal, Mapping
 
 import numpy as np
+from numba import njit
 from phylozoo.utils.exceptions import PhyloZooValueError
 
-try:
-    from numba import njit
-except Exception:  # pragma: no cover - fallback when numba unavailable
-    njit = None
+
+@njit(cache=True)
+def _combine_core_max_numba(
+    child_values: np.ndarray,
+    infeasible: float,
+    budget: int,
+    full_mask: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Numba core for maximizing child merge DP."""
+    deg = child_values.shape[0]
+    max_mask = full_mask + 1
+    values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+    values[0, 0] = 0.0
+
+    choices = np.full((deg, max_mask, budget + 1, 4), -1, dtype=np.int64)
+
+    for j in range(deg):
+        next_values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+        for assigned_mask in range(max_mask):
+            for used_budget in range(budget + 1):
+                base_value = values[assigned_mask, used_budget]
+                if base_value == infeasible:
+                    continue
+                remaining_mask = full_mask ^ assigned_mask
+                remaining_budget = budget - used_budget
+                submask = remaining_mask
+                while True:
+                    for allocated_budget in range(remaining_budget + 1):
+                        child_value = child_values[j, submask, allocated_budget]
+                        if child_value == infeasible:
+                            continue
+                        new_mask = assigned_mask | submask
+                        new_budget = used_budget + allocated_budget
+                        candidate = base_value + child_value
+                        if candidate > next_values[new_mask, new_budget]:
+                            next_values[new_mask, new_budget] = candidate
+                            choices[j, new_mask, new_budget, 0] = assigned_mask
+                            choices[j, new_mask, new_budget, 1] = used_budget
+                            choices[j, new_mask, new_budget, 2] = submask
+                            choices[j, new_mask, new_budget, 3] = allocated_budget
+                    if submask == 0:
+                        break
+                    submask = (submask - 1) & remaining_mask
+        values = next_values
+    return values, choices
 
 
-if njit is not None:
+@njit(cache=True)
+def _combine_core_min_numba(
+    child_values: np.ndarray,
+    infeasible: float,
+    budget: int,
+    full_mask: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Numba core for minimizing child merge DP."""
+    deg = child_values.shape[0]
+    max_mask = full_mask + 1
+    values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+    values[0, 0] = 0.0
 
-    @njit(cache=True)
-    def _combine_core_max_numba(
-        child_values: np.ndarray,
-        infeasible: float,
-        budget: int,
-        full_mask: int,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Numba core for maximizing child merge DP."""
-        deg = child_values.shape[0]
-        max_mask = full_mask + 1
-        values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
-        values[0, 0] = 0.0
+    choices = np.full((deg, max_mask, budget + 1, 4), -1, dtype=np.int64)
 
-        choices = np.full((deg, max_mask, budget + 1, 4), -1, dtype=np.int64)
-
-        for j in range(deg):
-            next_values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
-            for assigned_mask in range(max_mask):
-                for used_budget in range(budget + 1):
-                    base_value = values[assigned_mask, used_budget]
-                    if base_value == infeasible:
-                        continue
-                    remaining_mask = full_mask ^ assigned_mask
-                    remaining_budget = budget - used_budget
-                    submask = remaining_mask
-                    while True:
-                        for allocated_budget in range(remaining_budget + 1):
-                            child_value = child_values[j, submask, allocated_budget]
-                            if child_value == infeasible:
-                                continue
-                            new_mask = assigned_mask | submask
-                            new_budget = used_budget + allocated_budget
-                            candidate = base_value + child_value
-                            if candidate > next_values[new_mask, new_budget]:
-                                next_values[new_mask, new_budget] = candidate
-                                choices[j, new_mask, new_budget, 0] = assigned_mask
-                                choices[j, new_mask, new_budget, 1] = used_budget
-                                choices[j, new_mask, new_budget, 2] = submask
-                                choices[j, new_mask, new_budget, 3] = allocated_budget
-                        if submask == 0:
-                            break
-                        submask = (submask - 1) & remaining_mask
-            values = next_values
-        return values, choices
-
-    @njit(cache=True)
-    def _combine_core_min_numba(
-        child_values: np.ndarray,
-        infeasible: float,
-        budget: int,
-        full_mask: int,
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """Numba core for minimizing child merge DP."""
-        deg = child_values.shape[0]
-        max_mask = full_mask + 1
-        values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
-        values[0, 0] = 0.0
-
-        choices = np.full((deg, max_mask, budget + 1, 4), -1, dtype=np.int64)
-
-        for j in range(deg):
-            next_values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
-            for assigned_mask in range(max_mask):
-                for used_budget in range(budget + 1):
-                    base_value = values[assigned_mask, used_budget]
-                    if base_value == infeasible:
-                        continue
-                    remaining_mask = full_mask ^ assigned_mask
-                    remaining_budget = budget - used_budget
-                    submask = remaining_mask
-                    while True:
-                        for allocated_budget in range(remaining_budget + 1):
-                            child_value = child_values[j, submask, allocated_budget]
-                            if child_value == infeasible:
-                                continue
-                            new_mask = assigned_mask | submask
-                            new_budget = used_budget + allocated_budget
-                            candidate = base_value + child_value
-                            if candidate < next_values[new_mask, new_budget]:
-                                next_values[new_mask, new_budget] = candidate
-                                choices[j, new_mask, new_budget, 0] = assigned_mask
-                                choices[j, new_mask, new_budget, 1] = used_budget
-                                choices[j, new_mask, new_budget, 2] = submask
-                                choices[j, new_mask, new_budget, 3] = allocated_budget
-                        if submask == 0:
-                            break
-                        submask = (submask - 1) & remaining_mask
-            values = next_values
-        return values, choices
+    for j in range(deg):
+        next_values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+        for assigned_mask in range(max_mask):
+            for used_budget in range(budget + 1):
+                base_value = values[assigned_mask, used_budget]
+                if base_value == infeasible:
+                    continue
+                remaining_mask = full_mask ^ assigned_mask
+                remaining_budget = budget - used_budget
+                submask = remaining_mask
+                while True:
+                    for allocated_budget in range(remaining_budget + 1):
+                        child_value = child_values[j, submask, allocated_budget]
+                        if child_value == infeasible:
+                            continue
+                        new_mask = assigned_mask | submask
+                        new_budget = used_budget + allocated_budget
+                        candidate = base_value + child_value
+                        if candidate < next_values[new_mask, new_budget]:
+                            next_values[new_mask, new_budget] = candidate
+                            choices[j, new_mask, new_budget, 0] = assigned_mask
+                            choices[j, new_mask, new_budget, 1] = used_budget
+                            choices[j, new_mask, new_budget, 2] = submask
+                            choices[j, new_mask, new_budget, 3] = allocated_budget
+                    if submask == 0:
+                        break
+                    submask = (submask - 1) & remaining_mask
+        values = next_values
+    return values, choices
 
 
 def powerset(s: set[Any]) -> Iterator[set[Any]]:
@@ -187,19 +182,24 @@ class _ChildMergeDP:
         Sentinel value that denotes infeasible states.
     objective : {"max", "min"}, default="max"
         Optimization direction for the merge recurrence.
+    use_numba : bool, default=True
+        If ``True``, use the Numba-accelerated merge kernels; otherwise use the
+        pure Python implementation (same semantics, slower).
     """
 
     def __init__(
         self,
         infeasible_value: float,
         objective: Literal["max", "min"] = "max",
+        *,
+        use_numba: bool = True,
     ) -> None:
         self.infeasible_value = infeasible_value
         self.objective = objective
+        self._use_numba = use_numba
         self._subset_mask_cache: dict[frozenset[Any], tuple[int, list[frozenset[Any]]]] = {}
         if objective not in {"max", "min"}:
             raise ValueError(f"objective must be 'max' or 'min', got {objective!r}")
-        self._use_numba = njit is not None
 
     def _subset_mask_data(self, items: frozenset[Any]) -> tuple[int, list[frozenset[Any]]]:
         """Return subset-mask encoding for a fixed item set."""

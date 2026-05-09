@@ -41,6 +41,8 @@ class _DPInstance:
         tree_extension: TreeExtension,
         budget: int,
         costs: Mapping[str, int],
+        *,
+        use_numba: bool = True,
     ) -> None:
         self.network = network
         self.tree_extension = tree_extension
@@ -267,6 +269,8 @@ def solve_nsw_fpt_budget(
     budget: int,
     costs: Mapping[str, int] | None = None,
     tree_extension: TreeExtension | None = None,
+    *,
+    numba: bool = True,
     **kwargs: Any,
 ) -> tuple[float, Set[str]]:
     """
@@ -284,6 +288,9 @@ def solve_nsw_fpt_budget(
     tree_extension : TreeExtension | None, optional
         Optional precomputed tree extension. If ``None``, one is computed via
         :func:`scanwidth.node_scanwidth`.
+    numba : bool, default=True
+        Use Numba-accelerated child-table merges inside the DP.  Set to
+        ``False`` to force the pure Python merge (useful for debugging).
     **kwargs : Any
         Keyword arguments forwarded to ``scanwidth.node_scanwidth`` when a
         tree extension is computed.
@@ -332,6 +339,7 @@ def solve_nsw_fpt_budget(
         tree_extension=tree_extension,
         budget=budget,
         costs=normalized_costs,
+        use_numba=numba,
     )
     return dp.solve()
 
