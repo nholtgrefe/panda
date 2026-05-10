@@ -22,6 +22,86 @@ from phylozoo.utils.exceptions import (
 from ..utils import _ChildMergeDP, powerset
 
 
+def prune_to_taxa(
+    network: DirectedPhyNetwork,
+    taxa: Set[str],
+) -> DirectedPhyNetwork:
+    """
+    Return the PhyloZoo subnetwork induced by ``taxa``.
+
+    If ``taxa`` is exactly the leaf set of ``network``, returns ``network``
+    unchanged (same object).
+    """
+    if not taxa:
+        raise PhyloZooValueError("taxa must be non-empty for MinTreePD.")
+
+    if taxa == network.taxa:
+        return network
+
+    try:
+        return induced_subnetwork(
+            network,
+            list(taxa),
+            identify_parallel_edges=True,
+        )
+    except PhyloZooError:
+        raise PhyloZooRuntimeError(
+            "PhyloZoo failed to construct induced subnetwork for the requested taxa."
+        )
+
+
+def adapt_tree_extension_for_pruned_network(
+    working_network: DirectedPhyNetwork,
+    tree_extension: TreeExtension,
+) -> TreeExtension:
+    """
+    Derive a tree extension for ``working_network`` from one on a supergraph.
+
+    For each Γ-vertex absent from ``working_network``, connect its Γ-parent to
+    each Γ-child and remove that vertex.  The result is a valid tree extension
+    for the pruned DAG; node scanwidth is at most that of ``tree_extension``.
+
+    If ``working_network`` already uses the full vertex set of
+    ``tree_extension.tree``, the shortcut loop does nothing and the returned
+    object wraps a copy of Γ with the working DAG.
+    """
+    vertices = set(working_network._graph.nodes())
+    full_nodes = set(tree_extension.tree.nodes())
+    if not vertices.issubset(full_nodes):
+        raise PhyloZooValueError(
+            "Every vertex of working_network must occur in tree_extension.tree."
+        )
+    gamma = tree_extension.tree.copy()
+    while True:
+        outside = [n for n in gamma.nodes() if n not in vertices]
+        if not outside:
+            break
+        leaf_outside = sorted(
+            (v for v in outside if gamma.out_degree(v) == 0),
+            key=str,
+        )
+        pick_from = leaf_outside if leaf_outside else sorted(outside, key=str)
+        v = pick_from[0]
+        preds = list(gamma.predecessors(v))
+        if not preds:
+            raise PhyloZooValueError(
+                "Cannot adapt tree extension: removable tree vertex has no Γ-parent."
+            )
+        if len(preds) != 1:
+            raise PhyloZooRuntimeError("Tree extension vertex with indegree ≠ 1.")
+        p = preds[0]
+        succs = list(gamma.successors(v))
+        gamma.remove_node(v)
+        for w in succs:
+            gamma.add_edge(p, w)
+    if set(gamma.nodes()) != vertices:
+        raise PhyloZooRuntimeError(
+            "Internal error: adapted Γ-tree vertex set does not match pruned network."
+        )
+    dag = DAG(working_network._graph._graph)
+    return TreeExtension(dag, gamma)
+
+
 class _DPInstance:
     """Dynamic-programming instance for MinTreePD fixed-set computation."""
 
@@ -147,25 +227,6 @@ class _DPInstance:
         return self._dp_get(self.root, frozenset(), frozenset({self.root}))
 
 
-def _prune_to_taxa(
-    network: DirectedPhyNetwork,
-    taxa: Set[str],
-) -> DirectedPhyNetwork:
-    """Return induced subnetwork on ``taxa``."""
-    if not taxa:
-        raise PhyloZooValueError("taxa must be non-empty for MinTreePD.")
-
-    try:
-        return induced_subnetwork(
-            network,
-            list(taxa),
-            identify_parallel_edges=True,
-        )
-    except PhyloZooError:
-        raise PhyloZooRuntimeError(
-            "PhyloZoo failed to construct induced subnetwork for the requested taxa."
-        )
-
 class MinTreeDiversity:
     """
     Minimum displayed-tree diversity measure.
@@ -193,7 +254,9 @@ class MinTreeDiversity:
         taxa : Set[str]
             Selected taxa.
         tree_extension : TreeExtension | None, optional
-            Optional precomputed tree extension for the pruned network.
+            Optional tree extension for the **full** ``network``.  If the working
+            network is ``network`` itself (no pruning), it is used as-is; otherwise
+            it is adapted with :func:`adapt_tree_extension_for_pruned_network`.
         **kwargs : Any
             Keyword arguments forwarded to ``scanwidth.node_scanwidth`` when a
             tree extension is computed.
@@ -208,20 +271,34 @@ class MinTreeDiversity:
         >>> import phypanda as pp
         >>> # pp.min_tree.compute_diversity(network, {"a", "b"})  # doctest: +SKIP
         """
-        working_network = _prune_to_taxa(network, taxa)
+        taxa_set = set(taxa)
+        working_network = prune_to_taxa(network, taxa_set)
 
         if tree_extension is None:
             dag = DAG(working_network._graph._graph)
             value, extension = node_scanwidth(dag, **kwargs)
             if value is None:
                 raise PhyloZooRuntimeError("Failed to compute node-scanwidth extension")
-            tree_extension = extension.to_canonical_tree_extension()
-        elif not isinstance(tree_extension, TreeExtension):
-            raise PhyloZooValueError("tree_extension must be a TreeExtension or None.")
+            te = extension.to_canonical_tree_extension()
+        else:
+            if not isinstance(tree_extension, TreeExtension):
+                raise PhyloZooValueError("tree_extension must be a TreeExtension or None.")
+            full_vertices = set(network._graph.nodes())
+            if set(tree_extension.tree.nodes()) != full_vertices:
+                raise PhyloZooValueError(
+                    "tree_extension must be defined on the full network vertex set."
+                )
+            if working_network is network:
+                te = tree_extension
+            else:
+                te = adapt_tree_extension_for_pruned_network(
+                    working_network,
+                    tree_extension,
+                )
 
         dp = _DPInstance(
             network=working_network,
-            tree_extension=tree_extension,
+            tree_extension=te,
         )
         return dp.solve()
 
