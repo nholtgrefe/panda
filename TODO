@@ -1,9 +1,0 @@
-Move node and edge scanwidth all bag computation to scanwidth package
-
-what is :         if self.b_max < 0:
-            raise PhyloZooValueError(
-                "Budget is larger than total available taxon cost; recurrence undefined."
-            )
-
-numba in dependencies?
-numba in scanwidth?

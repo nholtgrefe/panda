@@ -1,6 +1,6 @@
 """Shared phylogenetic networks for regression and unit tests.
 
-Includes experiment networks from ``experiments/exp1_simulated_networks.csv``
+Includes experiment networks from ``experiments/MAPPD/exp1_simulated_networks.csv``
 and a small hand-built tree used across PD measure tests.
 """
 
