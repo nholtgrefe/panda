@@ -1,20 +1,34 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "phypanda"
 version = "2.0.0.dev"
 description = "a package for computing and maximizing phylogenetic diversity in phylogenetic networks"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { file = "LICENSE" }
 authors = [
     { name = "Niels Holtgrefe", email = "n.a.l.holtgrefe@tudelft.nl" }
 ]
-readme = "README.md"
-requires-python = ">=3.7"
+keywords = [
+    "phylogenetics",
+    "phylogenetic network",
+    "phylogenetic diversity",
+    "PaNDA",
+]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
 dependencies = [
@@ -26,12 +40,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
+    "pytest>=8.0.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "pydata-sphinx-theme>=0.15.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/nholtgrefe/panda"
 Repository = "https://github.com/nholtgrefe/panda"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
