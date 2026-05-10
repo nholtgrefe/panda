@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phypanda"
-version = "2.0.0.dev"
+version = "2.0.0"
 description = "a package for computing and maximizing phylogenetic diversity in phylogenetic networks"
 readme = "README.md"
 requires-python = ">=3.7"

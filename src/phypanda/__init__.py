@@ -46,3 +46,5 @@ __all__ = [
     "AverageTreeDiversity",
     "DiversityMeasure",
 ]
+
+__version__ = "2.0.0"
