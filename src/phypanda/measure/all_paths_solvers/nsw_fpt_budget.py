@@ -86,7 +86,10 @@ class _DPInstance:
         self.pointers: dict[Any, dict[frozenset[Any], dict[int, Any]]] = defaultdict(
             lambda: defaultdict(dict)
         )
-        self._child_merge_dp = _ChildMergeDP(self.minus_infinity)
+        self._child_merge_dp = _ChildMergeDP(
+            self.minus_infinity,
+            use_numba=use_numba,
+        )
 
     def _incoming_weight(self, v: Any) -> float:
         """Return sum of weights of all incoming network edges to ``v``."""

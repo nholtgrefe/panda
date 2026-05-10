@@ -394,9 +394,9 @@ class _ChildMergeDP:
             return val, ((items,), (budget,))
 
         full_mask, subset_by_mask = self._subset_mask_data(items)
-        max_mask = full_mask + 1
         infeasible = self.infeasible_value
 
+        max_mask = full_mask + 1
         values: list[list[float]] = [[infeasible] * (budget + 1) for _ in range(max_mask)]
         values[0][0] = 0.0
         active_states: list[tuple[int, int]] = [(0, 0)]
@@ -408,7 +408,7 @@ class _ChildMergeDP:
                 [None] * (budget + 1) for _ in range(max_mask)
             ]
             next_active_states: list[tuple[int, int]] = []
-            next_seen: set[tuple[int, int]] = set()
+            next_seen: list[list[bool]] = [[False] * (budget + 1) for _ in range(max_mask)]
             for assigned_mask, used_budget in active_states:
                 base_value = values[assigned_mask][used_budget]
                 remaining_mask = full_mask ^ assigned_mask
@@ -421,11 +421,10 @@ class _ChildMergeDP:
                             break
                         submask = (submask - 1) & remaining_mask
                         continue
-                    for allocated_budget in range(remaining_budget + 1):
-                        child_value = child_budget_map.get(allocated_budget, infeasible)
-                        if child_value == infeasible:
+                    new_mask = assigned_mask | submask
+                    for allocated_budget, child_value in child_budget_map.items():
+                        if allocated_budget > remaining_budget or child_value == infeasible:
                             continue
-                        new_mask = assigned_mask | submask
                         new_budget = used_budget + allocated_budget
                         candidate_value = base_value + child_value
                         current = next_values[new_mask][new_budget]
@@ -437,10 +436,9 @@ class _ChildMergeDP:
                                 submask,
                                 allocated_budget,
                             )
-                            key = (new_mask, new_budget)
-                            if key not in next_seen:
-                                next_seen.add(key)
-                                next_active_states.append(key)
+                            if not next_seen[new_mask][new_budget]:
+                                next_seen[new_mask][new_budget] = True
+                                next_active_states.append((new_mask, new_budget))
                     if submask == 0:
                         break
                     submask = (submask - 1) & remaining_mask
@@ -491,9 +489,9 @@ class _ChildMergeDP:
             return val, ((items,), (budget,))
 
         full_mask, subset_by_mask = self._subset_mask_data(items)
-        max_mask = full_mask + 1
         infeasible = self.infeasible_value
 
+        max_mask = full_mask + 1
         values: list[list[float]] = [[infeasible] * (budget + 1) for _ in range(max_mask)]
         values[0][0] = 0.0
         active_states: list[tuple[int, int]] = [(0, 0)]
@@ -505,7 +503,7 @@ class _ChildMergeDP:
                 [None] * (budget + 1) for _ in range(max_mask)
             ]
             next_active_states: list[tuple[int, int]] = []
-            next_seen: set[tuple[int, int]] = set()
+            next_seen: list[list[bool]] = [[False] * (budget + 1) for _ in range(max_mask)]
             for assigned_mask, used_budget in active_states:
                 base_value = values[assigned_mask][used_budget]
                 remaining_mask = full_mask ^ assigned_mask
@@ -518,11 +516,10 @@ class _ChildMergeDP:
                             break
                         submask = (submask - 1) & remaining_mask
                         continue
-                    for allocated_budget in range(remaining_budget + 1):
-                        child_value = child_budget_map.get(allocated_budget, infeasible)
-                        if child_value == infeasible:
+                    new_mask = assigned_mask | submask
+                    for allocated_budget, child_value in child_budget_map.items():
+                        if allocated_budget > remaining_budget or child_value == infeasible:
                             continue
-                        new_mask = assigned_mask | submask
                         new_budget = used_budget + allocated_budget
                         candidate_value = base_value + child_value
                         current = next_values[new_mask][new_budget]
@@ -534,10 +531,9 @@ class _ChildMergeDP:
                                 submask,
                                 allocated_budget,
                             )
-                            key = (new_mask, new_budget)
-                            if key not in next_seen:
-                                next_seen.add(key)
-                                next_active_states.append(key)
+                            if not next_seen[new_mask][new_budget]:
+                                next_seen[new_mask][new_budget] = True
+                                next_active_states.append((new_mask, new_budget))
                     if submask == 0:
                         break
                     submask = (submask - 1) & remaining_mask

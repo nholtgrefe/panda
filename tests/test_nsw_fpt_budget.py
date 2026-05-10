@@ -96,3 +96,29 @@ def test_nsw_fpt_budget_defaults_missing_costs_to_one() -> None:
     )
     assert value_partial == value_explicit
     assert taxa_partial == taxa_explicit
+
+
+def test_nsw_fpt_budget_numba_false_matches_numba_true() -> None:
+    """Pure Python and Numba child merges return the same all-paths solution."""
+    network = build_small_tree_network()
+    budget = 3
+    costs = {"a": 2, "b": 1, "c": 1, "d": 1}
+
+    value_fast, taxa_fast = pp.solve_max_diversity(
+        network,
+        budget=budget,
+        costs=costs,
+        measure=pp.all_paths,
+        algorithm="nsw_fpt_budget",
+        numba=True,
+    )
+    value_slow, taxa_slow = pp.solve_max_diversity(
+        network,
+        budget=budget,
+        costs=costs,
+        measure=pp.all_paths,
+        algorithm="nsw_fpt_budget",
+        numba=False,
+    )
+    assert value_slow == pytest.approx(value_fast)
+    assert taxa_slow == taxa_fast
