@@ -248,6 +248,65 @@ class _ChildMergeDP:
             )
         return self._combine_min(child_tables=child_tables, items=items, budget=budget)
 
+    def combine_full_table(
+        self,
+        child_tables: list[dict[frozenset[Any], dict[int, float]]],
+        items: frozenset[Any],
+        budget: int,
+    ) -> tuple[np.ndarray, np.ndarray, int, list[frozenset[Any]]]:
+        """Compute the full merge table for all (mask, budget) pairs at once.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray, int, list[frozenset[Any]]]
+            ``(values, choices, full_mask, subset_by_mask)`` where:
+            - ``values`` has shape ``[full_mask+1, budget+1]``
+            - ``choices`` has shape ``[deg, full_mask+1, budget+1, 4]``
+        """
+        infeasible = self.infeasible_value
+        full_mask, subset_by_mask = self._subset_mask_data(items)
+        max_mask = full_mask + 1
+        deg = len(child_tables)
+
+        if deg == 0:
+            values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+            values[0, 0] = 0.0
+            choices = np.full((0, max_mask, budget + 1, 4), -1, dtype=np.int64)
+            return values, choices, full_mask, subset_by_mask
+
+        if deg == 1:
+            mask_by_subset = {s: m for m, s in enumerate(subset_by_mask)}
+            values = np.full((max_mask, budget + 1), infeasible, dtype=np.float64)
+            choices = np.full((1, max_mask, budget + 1, 4), -1, dtype=np.int64)
+            for subset, budget_map in child_tables[0].items():
+                mask = mask_by_subset.get(subset)
+                if mask is None:
+                    continue
+                for b_val, val in budget_map.items():
+                    if 0 <= b_val <= budget and val != infeasible:
+                        values[mask, b_val] = val
+                        choices[0, mask, b_val, 0] = 0
+                        choices[0, mask, b_val, 1] = 0
+                        choices[0, mask, b_val, 2] = mask
+                        choices[0, mask, b_val, 3] = b_val
+            return values, choices, full_mask, subset_by_mask
+
+        child_values = self._dense_child_values(child_tables, subset_by_mask, budget)
+        if self._use_numba:
+            if self.objective == "max":
+                values, choices = _combine_core_max_numba(
+                    child_values, infeasible, budget, full_mask
+                )
+            else:
+                values, choices = _combine_core_min_numba(
+                    child_values, infeasible, budget, full_mask
+                )
+        else:
+            values, choices = self._combine_full_python(
+                child_tables, full_mask, subset_by_mask, budget
+            )
+        return values, choices, full_mask, subset_by_mask
+
     def _dense_child_values(
         self,
         child_tables: list[dict[frozenset[Any], dict[int, float]]],
@@ -469,6 +528,81 @@ class _ChildMergeDP:
         item_parts = tuple(subset_by_mask[mask] for mask in part_masks_rev)
         budget_parts = tuple(budget_parts_rev)
         return value, (item_parts, budget_parts)
+
+    def _combine_full_python(
+        self,
+        child_tables: list[dict[frozenset[Any], dict[int, float]]],
+        full_mask: int,
+        subset_by_mask: list[frozenset[Any]],
+        budget: int,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Pure-Python full-table merge returning dense numpy arrays."""
+        infeasible = self.infeasible_value
+        deg = len(child_tables)
+        max_mask = full_mask + 1
+        compare = (lambda a, b: a > b) if self.objective == "max" else (lambda a, b: a < b)
+
+        values: list[list[float]] = [[infeasible] * (budget + 1) for _ in range(max_mask)]
+        values[0][0] = 0.0
+        active_states: list[tuple[int, int]] = [(0, 0)]
+        layer_choices: list[list[list[tuple[int, int, int, int] | None]]] = []
+
+        for child_table in child_tables:
+            next_values: list[list[float]] = [[infeasible] * (budget + 1) for _ in range(max_mask)]
+            next_choice: list[list[tuple[int, int, int, int] | None]] = [
+                [None] * (budget + 1) for _ in range(max_mask)
+            ]
+            next_active_states: list[tuple[int, int]] = []
+            next_seen: list[list[bool]] = [[False] * (budget + 1) for _ in range(max_mask)]
+            for assigned_mask, used_budget in active_states:
+                base_value = values[assigned_mask][used_budget]
+                remaining_mask = full_mask ^ assigned_mask
+                remaining_budget = budget - used_budget
+                submask = remaining_mask
+                while True:
+                    child_budget_map = child_table.get(subset_by_mask[submask])
+                    if child_budget_map is None:
+                        if submask == 0:
+                            break
+                        submask = (submask - 1) & remaining_mask
+                        continue
+                    new_mask = assigned_mask | submask
+                    for allocated_budget, child_value in child_budget_map.items():
+                        if allocated_budget > remaining_budget or child_value == infeasible:
+                            continue
+                        new_budget = used_budget + allocated_budget
+                        candidate_value = base_value + child_value
+                        current = next_values[new_mask][new_budget]
+                        if compare(candidate_value, current):
+                            next_values[new_mask][new_budget] = candidate_value
+                            next_choice[new_mask][new_budget] = (
+                                assigned_mask,
+                                used_budget,
+                                submask,
+                                allocated_budget,
+                            )
+                            if not next_seen[new_mask][new_budget]:
+                                next_seen[new_mask][new_budget] = True
+                                next_active_states.append((new_mask, new_budget))
+                    if submask == 0:
+                        break
+                    submask = (submask - 1) & remaining_mask
+            values = next_values
+            active_states = next_active_states
+            layer_choices.append(next_choice)
+
+        values_arr = np.array(values, dtype=np.float64)
+        choices_arr = np.full((deg, max_mask, budget + 1, 4), -1, dtype=np.int64)
+        for j, layer in enumerate(layer_choices):
+            for m in range(max_mask):
+                for bb in range(budget + 1):
+                    entry = layer[m][bb]
+                    if entry is not None:
+                        choices_arr[j, m, bb, 0] = entry[0]
+                        choices_arr[j, m, bb, 1] = entry[1]
+                        choices_arr[j, m, bb, 2] = entry[2]
+                        choices_arr[j, m, bb, 3] = entry[3]
+        return values_arr, choices_arr
 
     def _combine_min(
         self,

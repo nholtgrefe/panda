@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import Any, Mapping, Set
 
 import networkx as nx
+import numpy as np
 from scanwidth import DAG, TreeExtension, node_scanwidth
 
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
@@ -110,6 +111,39 @@ class _DPInstance:
         child_tables = [table.get(child, {}) for child in children]
         return self._child_merge_dp.combine(child_tables=child_tables, items=y, budget=b)
 
+    def _reconstruct_partition(
+        self,
+        choices: np.ndarray,
+        mask: int,
+        b: int,
+        subset_by_mask: list[frozenset[Any]],
+        children: list[Any],
+    ) -> tuple[tuple[frozenset[Any], ...], tuple[int, ...]] | None:
+        """Recover (y_parts, b_split) from a batch choices array for backtracking."""
+        deg = len(children)
+        if deg == 0:
+            return (tuple(), tuple())
+        part_masks_rev: list[int] = []
+        budget_parts_rev: list[int] = []
+        cur_mask, cur_budget = mask, b
+        for j in range(deg - 1, -1, -1):
+            row = choices[j, cur_mask, cur_budget]
+            prev_mask = int(row[0])
+            prev_budget = int(row[1])
+            picked_submask = int(row[2])
+            picked_budget = int(row[3])
+            if prev_mask < 0:
+                return None
+            part_masks_rev.append(picked_submask)
+            budget_parts_rev.append(picked_budget)
+            cur_mask, cur_budget = prev_mask, prev_budget
+        part_masks_rev.reverse()
+        budget_parts_rev.reverse()
+        return (
+            tuple(subset_by_mask[m] for m in part_masks_rev),
+            tuple(budget_parts_rev),
+        )
+
     def _process_leaf(self, x: Any) -> None:
         """Fill leaf states using the same base formulas as all-paths NSW DP."""
         parents = list(self.network.parents(x))
@@ -151,36 +185,78 @@ class _DPInstance:
                 self.pointers[x][y_frozen][b] = ptr
 
     def _process_internal(self, v: Any) -> None:
-        """Fill internal-node states from MaxTreePD recurrence transitions."""
-        parents_v = set(self.network.parents(v))
+        """Fill internal-node states from MaxTreePD recurrence transitions.
 
-        for y in powerset(set(self.GW[v])):
+        Packs child tables once per item universe (one exclude universe GW(v),
+        one include universe per parent), then fills all (Y, b) states via
+        O(1) array lookups.
+        """
+        parents_v = set(self.network.parents(v))
+        gw_v = self.GW[v]
+        children = self._children_in_tree(v)
+        child_tables = [self.table.get(child, {}) for child in children]
+
+        # Exclude: one batch for the full bag.
+        excl_vals, excl_choices, _, excl_sbm = self._child_merge_dp.combine_full_table(
+            child_tables, gw_v, self.b_max
+        )
+        excl_mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(excl_sbm)}
+
+        # Include: one batch per parent (each has a distinct item universe).
+        incl_data: dict[Any, tuple] = {}
+        for parent in parents_v:
+            incl_universe = frozenset((gw_v - {parent}) | {v})
+            vals, choices, _, sbm = self._child_merge_dp.combine_full_table(
+                child_tables, incl_universe, self.b_max
+            )
+            mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(sbm)}
+            incl_data[parent] = (vals, choices, sbm, mbs)
+
+        # Store batch arrays once per node for backtracking.
+        self.pointers[v]["_batch"] = (
+            excl_choices,
+            excl_sbm,
+            {parent: (choices, sbm) for parent, (_, choices, sbm, _) in incl_data.items()},
+            children,
+        )
+
+        infeasible = self.minus_infinity
+        for y in powerset(set(gw_v)):
             y_frozen = frozenset(y)
+            excl_mask = excl_mbs.get(y_frozen)
+
+            # Pre-compute include masks for each parent (only y-dependent, not b-dependent).
+            parent_masks: dict[Any, int | None] = {}
+            for parent in parents_v:
+                y_include = frozenset((set(y_frozen) - {parent}) | {v})
+                parent_masks[parent] = incl_data[parent][3].get(y_include)
 
             for b in range(self.b_max + 1):
-                # Exclude incoming edge into v.
-                option1, choice1 = self._combine_children(self.table, v, y_frozen, b)
+                option1 = float(excl_vals[excl_mask, b]) if excl_mask is not None else infeasible
 
-                # Include exactly one incoming edge p_v -> v (if available).
-                best_include = self.minus_infinity
-                best_include_choice: Any = None
+                best_include = infeasible
+                best_parent: Any = None
+                best_incl_mask: int | None = None
                 for parent in parents_v:
-                    y_include = frozenset((set(y_frozen) - {parent}) | {v})
-                    option2_base, choice2 = self._combine_children(self.table, v, y_include, b)
-                    if option2_base <= self.minus_infinity:
+                    incl_mask = parent_masks[parent]
+                    if incl_mask is None:
+                        continue
+                    option2_base = float(incl_data[parent][0][incl_mask, b])
+                    if option2_base <= infeasible:
                         continue
                     edge_weight = self.network.get_branch_length(parent, v) or 1.0
                     candidate = edge_weight + option2_base
                     if candidate > best_include:
                         best_include = candidate
-                        best_include_choice = (parent, choice2)
+                        best_parent = parent
+                        best_incl_mask = incl_mask
 
                 if best_include > option1:
                     self.table[v][y_frozen][b] = best_include
-                    self.pointers[v][y_frozen][b] = ("include", best_include_choice)
+                    self.pointers[v][y_frozen][b] = ("include", best_parent, best_incl_mask, b)
                 else:
                     self.table[v][y_frozen][b] = option1
-                    self.pointers[v][y_frozen][b] = ("exclude", choice1)
+                    self.pointers[v][y_frozen][b] = ("exclude", excl_mask, b)
 
     def _fill_tables(self) -> None:
         """Compute DP tables in postorder of the tree extension."""
@@ -204,21 +280,23 @@ class _DPInstance:
         if tag not in {"include", "exclude"}:
             return set()
 
-        choice = ptr[1]
-        if choice is None:
+        batch = self.pointers[v].get("_batch")
+        if batch is None:
             return {v} if tag == "include" else set()
+        excl_choices, excl_sbm, per_parent, children = batch
 
-        if tag == "include":
-            # Stored as (selected_parent, child_choice) for MaxTree recurrence.
-            _, child_choice = choice
-            if child_choice is None:
-                return {v}
-            y_parts, b_split = child_choice
-        else:
-            y_parts, b_split = choice
-
-        children = self._children_in_tree(v)
         z: set[Any] = {v} if tag == "include" else set()
+        if tag == "include":
+            _, best_parent, mask, _ = ptr
+            incl_choices, incl_sbm = per_parent[best_parent]
+            partition = self._reconstruct_partition(incl_choices, mask, b, incl_sbm, children)
+        else:
+            _, mask, _ = ptr
+            partition = self._reconstruct_partition(excl_choices, mask, b, excl_sbm, children)
+
+        if partition is None:
+            return z
+        y_parts, b_split = partition
         for child, y_child, b_child in zip(children, y_parts, b_split):
             z |= self._backtrack(child, y_child, b_child)
         return z

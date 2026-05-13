@@ -187,30 +187,81 @@ class _DPInstance:
                 else:
                     self.table[x][y_frozen][z_frozen] = self.plus_infinity
 
+    def _build_child_tables_for_z(
+        self,
+        children: list[Any],
+        z: frozenset[Any],
+    ) -> list[dict[frozenset[Any], dict[int, float]]]:
+        """Build child merge tables for a fixed z (budget is always 0)."""
+        child_tables = []
+        for child in children:
+            z_child = frozenset(set(z) & set(self.GW[child]))
+            child_table: dict[frozenset[Any], dict[int, float]] = {}
+            for y_child in powerset(set(self.GW[child])):
+                y_child_frozen = frozenset(y_child)
+                child_table[y_child_frozen] = {0: self._dp_get(child, y_child_frozen, z_child)}
+            child_tables.append(child_table)
+        return child_tables
+
     def _process_internal(self, v: Any) -> None:
-        """Fill internal-node entries from MinTreePD recurrence."""
+        """Fill internal-node entries from MinTreePD recurrence.
+
+        Builds child tables once per distinct z value (and once for z2 = z | {v}
+        when parents are active), then fills all y ⊆ z states via O(1) array
+        lookups instead of per-(y, z) kernel calls.
+        """
         parents_v = set(self.network.parents(v))
         z_states = [frozenset(z) for z in powerset(set(self.GW[v]))]
         if v == self.root:
             # Required by theorem text: allow Z={rho} even if GW(root)=empty.
             z_states.append(frozenset({self.root}))
+        children = self._children_in_tree(v)
 
-        for z in z_states:
-            for y in powerset(set(z)):
+        for z_frozen in z_states:
+            # Exclude option: batch merge over the full z universe (once per z).
+            child_tables_z = self._build_child_tables_for_z(children, z_frozen)
+            excl_vals, _, _, excl_sbm = self._child_merge_dp.combine_full_table(
+                child_tables_z, z_frozen, 0
+            )
+            excl_mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(excl_sbm)}
+
+            # Include option: z2 = z | {v} is the same for all parents.
+            active_parents = set(z_frozen) & parents_v
+            if active_parents:
+                z2 = frozenset(set(z_frozen) | {v})
+                child_tables_z2 = self._build_child_tables_for_z(children, z2)
+                incl_vals, _, _, incl_sbm = self._child_merge_dp.combine_full_table(
+                    child_tables_z2, z2, 0
+                )
+                incl_mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(incl_sbm)}
+            else:
+                incl_vals = incl_mbs = None
+                z2 = None
+
+            for y in powerset(set(z_frozen)):
                 y_frozen = frozenset(y)
-                z_frozen = frozenset(z)
 
-                option1 = self._combine_children(v, y_frozen, z_frozen)
+                excl_mask = excl_mbs.get(y_frozen)
+                option1 = (
+                    float(excl_vals[excl_mask, 0])
+                    if excl_mask is not None
+                    else self.plus_infinity
+                )
                 best = option1
 
-                # Include one incoming edge p->v if p is allowed as root in Z.
-                for parent in (set(z_frozen) & parents_v):
+                for parent in active_parents:
                     edge_weight = self.network.get_branch_length(parent, v) or 1.0
-                    y2 = frozenset((set(y_frozen) - {parent}) | {v})
-                    z2 = frozenset(set(z_frozen) | {v})
-                    option2 = edge_weight + self._combine_children(v, y2, z2)
+                    y2_frozen = frozenset((set(y_frozen) - {parent}) | {v})
+                    incl_mask = incl_mbs.get(y2_frozen) if incl_mbs is not None else None
+                    option2_base = (
+                        float(incl_vals[incl_mask, 0])
+                        if incl_mask is not None
+                        else self.plus_infinity
+                    )
+                    option2 = edge_weight + option2_base
                     if option2 < best:
                         best = option2
+
                 self.table[v][y_frozen][z_frozen] = best
 
     def _fill_tables(self) -> None:

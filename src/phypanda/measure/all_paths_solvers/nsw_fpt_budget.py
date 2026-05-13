@@ -142,6 +142,39 @@ class _DPInstance:
         child_tables = [table.get(child, {}) for child in children]
         return self._child_merge_dp.combine(child_tables=child_tables, items=y, budget=b)
 
+    def _reconstruct_partition(
+        self,
+        choices: np.ndarray,
+        mask: int,
+        b: int,
+        subset_by_mask: list[frozenset[Any]],
+        children: list[Any],
+    ) -> tuple[tuple[frozenset[Any], ...], tuple[int, ...]] | None:
+        """Recover (y_parts, b_split) from a batch choices array for backtracking."""
+        deg = len(children)
+        if deg == 0:
+            return (tuple(), tuple())
+        part_masks_rev: list[int] = []
+        budget_parts_rev: list[int] = []
+        cur_mask, cur_budget = mask, b
+        for j in range(deg - 1, -1, -1):
+            row = choices[j, cur_mask, cur_budget]
+            prev_mask = int(row[0])
+            prev_budget = int(row[1])
+            picked_submask = int(row[2])
+            picked_budget = int(row[3])
+            if prev_mask < 0:
+                return None
+            part_masks_rev.append(picked_submask)
+            budget_parts_rev.append(picked_budget)
+            cur_mask, cur_budget = prev_mask, prev_budget
+        part_masks_rev.reverse()
+        budget_parts_rev.reverse()
+        return (
+            tuple(subset_by_mask[m] for m in part_masks_rev),
+            tuple(budget_parts_rev),
+        )
+
     def _process_leaf(self, x: Any) -> None:
         """Fill leaf states for the selected table using base formulas."""
         parents = list(self.network.parents(x))
@@ -188,35 +221,52 @@ class _DPInstance:
         """
         Fill internal-node states from include/exclude recurrence transitions.
 
-        For each state ``(Y, b)``, we compare:
-
-        - excluding ``v``: merge children with ``Y``,
-        - including ``v``: merge children with transformed set ``Y_include`` and
-          add incoming-edge weight contribution.
+        Packs child tables once per item universe (exclude = GW(v), include =
+        (GW(v) - parents(v)) | {v}), runs the Numba kernel once per universe,
+        then fills all (Y, b) states via O(1) array lookups.
         """
         parents_v = set(self.network.parents(v))
         w_in_v = self._incoming_weight(v)
+        gw_v = self.GW[v]
+        children = self._children_in_tree(v)
+        child_tables = [self.table.get(child, {}) for child in children]
 
-        for y in powerset(set(self.GW[v])):
+        # One pack + kernel call per universe.
+        excl_vals, excl_choices, _, excl_sbm = self._child_merge_dp.combine_full_table(
+            child_tables, gw_v, self.b_max
+        )
+        incl_universe = frozenset((gw_v - parents_v) | {v})
+        incl_vals, incl_choices, _, incl_sbm = self._child_merge_dp.combine_full_table(
+            child_tables, incl_universe, self.b_max
+        )
+
+        excl_mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(excl_sbm)}
+        incl_mbs: dict[frozenset[Any], int] = {s: m for m, s in enumerate(incl_sbm)}
+
+        # Store batch arrays once per node for use during backtracking.
+        self.pointers[v]["_batch"] = (excl_choices, excl_sbm, incl_choices, incl_sbm, children)
+
+        infeasible = self.minus_infinity
+        for y in powerset(set(gw_v)):
             y_frozen = frozenset(y)
             y_include = frozenset((set(y_frozen) - parents_v) | {v})
+            excl_mask = excl_mbs.get(y_frozen)
+            incl_mask = incl_mbs.get(y_include)
 
             for b in range(self.b_max + 1):
-                # Option 1: v is excluded; children must realize Y directly.
-                option1, choice1 = self._combine_children(self.table, v, y_frozen, b)
-                # Option 2: v is included; adjust boundary set and add local gain.
-                option2_base, choice2 = self._combine_children(self.table, v, y_include, b)
+                option1 = float(excl_vals[excl_mask, b]) if excl_mask is not None else infeasible
+                option2_base = (
+                    float(incl_vals[incl_mask, b]) if incl_mask is not None else infeasible
+                )
                 option2 = (
-                    self.minus_infinity
-                    if option2_base <= self.minus_infinity
-                    else w_in_v + option2_base
+                    infeasible if option2_base <= infeasible else w_in_v + option2_base
                 )
                 if option2 > option1:
                     self.table[v][y_frozen][b] = option2
-                    self.pointers[v][y_frozen][b] = ("include", choice2)
+                    self.pointers[v][y_frozen][b] = ("include", incl_mask, b)
                 else:
                     self.table[v][y_frozen][b] = option1
-                    self.pointers[v][y_frozen][b] = ("exclude", choice1)
+                    self.pointers[v][y_frozen][b] = ("exclude", excl_mask, b)
 
     def _fill_tables(self) -> None:
         """Compute DP tables in postorder of the tree extension."""
@@ -240,12 +290,21 @@ class _DPInstance:
         if tag not in {"include", "exclude"}:
             return set()
 
-        choice = ptr[1]
-        if choice is None:
+        batch = self.pointers[v].get("_batch")
+        if batch is None:
             return {v} if tag == "include" else set()
-        y_parts, b_split = choice
-        children = self._children_in_tree(v)
+        excl_choices, excl_sbm, incl_choices, incl_sbm, children = batch
+        _, mask, _ = ptr  # tag, mask, b
+
+        if tag == "include":
+            partition = self._reconstruct_partition(incl_choices, mask, b, incl_sbm, children)
+        else:
+            partition = self._reconstruct_partition(excl_choices, mask, b, excl_sbm, children)
+
         z: set[Any] = {v} if tag == "include" else set()
+        if partition is None:
+            return z
+        y_parts, b_split = partition
         for child, y_child, b_child in zip(children, y_parts, b_split):
             z |= self._backtrack(child, y_child, b_child)
         return z
