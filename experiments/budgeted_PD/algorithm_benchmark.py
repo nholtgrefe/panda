@@ -145,6 +145,25 @@ def main() -> None:
     fieldnames = _wide_fieldnames()
     networks_sorted = _load_rows_sorted_by_level(nets_path)
 
+    # Numba warmup: run all three solvers once on the first network so JIT
+    # compilation is not charged to any timed row.
+    print("Warming up Numba JIT...", flush=True)
+    _wid, _, _wnewick = networks_sorted[0]
+    _wnet = DirectedPhyNetwork.from_string(_wnewick)
+    _wte = _tree_extension_from_labels(_wnet, extension_map[_wid])
+    _wcosts = {t: int(costs_map[_wid].get(t, 1)) for t in set(_wnet.taxa)}
+    _wtotal = sum(_wcosts.values())
+    _wbudget = max(0, min(_wtotal, int(round(0.50 * _wtotal))))
+    pp.all_paths.solve_maximization(
+        _wnet, budget=_wbudget, costs=_wcosts,
+        algorithm="nsw_fpt_budget", tree_extension=_wte, numba=True,
+    )
+    pp.max_tree.solve_maximization(
+        _wnet, budget=_wbudget, costs=_wcosts, tree_extension=_wte, numba=True,
+    )
+    pp.min_tree.compute_diversity(_wnet, set(_wnet.taxa), tree_extension=_wte)
+    print("Warmup done.", flush=True)
+
     n_done = 0
     with out_path.open("w", newline="", encoding="utf-8") as f_out:
         writer = csv.DictWriter(f_out, fieldnames=fieldnames, delimiter=" ")

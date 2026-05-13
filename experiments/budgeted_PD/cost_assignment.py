@@ -22,8 +22,8 @@ import numpy as np
 from phylozoo import DirectedPhyNetwork
 
 # Lognormal parameters: underlying normal has mean ``mu`` and std ``sigma``.
-_MU = math.log(5.0)
-_SIGMA = 0.5
+_MU = 2.0 #math.log(5.0)
+_SIGMA = 0.8 #0.5
 
 
 def sample_taxon_costs(taxa: list[str], *, rng: np.random.Generator | None = None) -> list[tuple[str, int]]:

@@ -35,7 +35,7 @@ def _validate_budget(budget: int) -> None:
         raise PhyloZooValueError(f"budget must be non-negative, got {budget}")
 
 
-def diversity(
+def compute_diversity(
     network: DirectedPhyNetwork,
     taxa: set[str],
     measure: DiversityMeasure,
@@ -68,7 +68,7 @@ def diversity(
     Examples
     --------
     >>> import phypanda as pp
-    >>> # value = pp.diversity(network, {"a", "b"}, measure=pp.all_paths)
+    >>> # value = pp.compute_diversity(network, {"a", "b"}, measure=pp.all_paths)
     """
     network_taxa = set(network.taxa)
     if not taxa.issubset(network_taxa):
@@ -107,16 +107,16 @@ def marginal_diversities(
     >>> import phypanda as pp
     >>> # marg = pp.marginal_diversities(network, {"a"}, measure=pp.all_paths)
     """
-    total_div = diversity(network, saved_taxa, measure, **kwargs)
+    total_div = compute_diversity(network, saved_taxa, measure, **kwargs)
     marginal: Dict[str, float] = {}
     all_taxa = set(network.taxa)
 
     for taxon in all_taxa:
         if taxon in saved_taxa:
-            div_minus = diversity(network, saved_taxa - {taxon}, measure, **kwargs)
+            div_minus = compute_diversity(network, saved_taxa - {taxon}, measure, **kwargs)
             marginal[taxon] = div_minus - total_div
         else:
-            div_plus = diversity(network, saved_taxa | {taxon}, measure, **kwargs)
+            div_plus = compute_diversity(network, saved_taxa | {taxon}, measure, **kwargs)
             marginal[taxon] = div_plus - total_div
 
     return marginal
@@ -191,7 +191,7 @@ def greedy_max_diversity(
         if remaining_budget == 0:
             break
 
-    div_value = diversity(network, saved_taxa, measure, **kwargs)
+    div_value = compute_diversity(network, saved_taxa, measure, **kwargs)
     return div_value, saved_taxa
 
 

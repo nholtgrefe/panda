@@ -6,7 +6,7 @@ measures with a common interface.
 """
 
 from .base import (
-    diversity,
+    compute_diversity,
     greedy_max_diversity,
     marginal_diversities,
     solve_max_diversity,
@@ -28,7 +28,7 @@ from .measure import (
 from .protocol import DiversityMeasure
 
 __all__ = [
-    "diversity",
+    "compute_diversity",
     "marginal_diversities",
     "greedy_max_diversity",
     "solve_max_diversity",
