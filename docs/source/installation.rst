@@ -1,41 +1,66 @@
-Installation
-============
+Installation Guide
+==================
+
+Installing phypanda
+--------------------
+
+phypanda is a Python package that runs on `Python <https://www.python.org/>`_ (>= 3.7).
+Choose one of:
+
+* **From PyPI** — stable release:
+
+  .. code-block:: bash
+
+     pip install phypanda
+
+* **From source** — editable install, recommended for development:
+
+  .. code-block:: bash
+
+     cd panda
+     pip install -e .
+
+Optional dependency groups
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Development and testing tools:
+
+.. code-block:: bash
+
+   pip install phypanda[dev]
+
+Documentation dependencies:
+
+.. code-block:: bash
+
+   pip install phypanda[docs]
 
 Requirements
-------------
+^^^^^^^^^^^^
 
-* **Python** 3.7 or newer (see ``requires-python`` in ``pyproject.toml``).
-* A normal scientific Python environment; heavy lifting for several solvers uses **Numba** (installed with the package).
+The following are required and installed automatically with pip:
 
-Install the package
--------------------
+* `phylozoo <https://github.com/nholtgrefe/phylozoo>`_ >= 0.1.2 — directed phylogenetic networks and I/O.
+* `networkx <https://networkx.org/>`_ >= 3.0 — graph algorithms shared with phylozoo and scanwidth.
+* `scanwidth <https://github.com/nholtgrefe/scanwidth>`_ >= 0.2.5 — tree extensions and node-scanwidth computation.
+* `numba <https://numba.pydata.org/>`_ >= 0.56 — JIT-accelerated dynamic programming (can be disabled per call).
 
-**From PyPI** (when a release is published):
+Verifying Installation
+-----------------------
 
-.. code-block:: bash
+To verify that phypanda is installed correctly, import it and print the version.
+The latest version is |version|.
 
-   pip install phypanda
+.. code-block:: python
 
-**From a clone of the repository** (editable install recommended for development):
+   >>> import phypanda as pp
+   >>> print(pp.__version__)
+   x.y.z  # your installed version
 
-.. code-block:: bash
+Building Documentation
+-----------------------
 
-   cd panda
-   python -m venv .venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
-   pip install -e .
-
-Optional extras
----------------
-
-**Run the test suite** (``pytest``):
-
-.. code-block:: bash
-
-   pip install -e ".[dev]"
-   pytest
-
-**Build this documentation** (Sphinx + PyData theme):
+To build the documentation locally, install the optional documentation dependencies:
 
 .. code-block:: bash
 
@@ -44,27 +69,13 @@ Optional extras
 
 Open ``docs/build/html/index.html`` in a browser.
 
-Dependencies (automatic with ``pip install phypanda``)
--------------------------------------------------------
+Troubleshooting
+---------------
 
-These are declared in ``pyproject.toml`` and pulled in by pip:
+**Slow first call with** ``numba=True``: Numba compiles JIT kernels on first invocation.
+This is expected — subsequent calls in the same Python session are fast. Pass
+``numba=False`` to any solver call to skip JIT compilation entirely.
 
-.. list-table::
-   :widths: 20 80
-   :header-rows: 1
-
-   * - Package
-     - Role in phypanda
-   * - ``phylozoo``
-     - Directed phylogenetic networks, I/O, subnetworks.
-   * - ``networkx``
-     - Graph algorithms shared with phylozoo / scanwidth.
-   * - ``scanwidth``
-     - Edge- and node-scanwidth, tree extensions, NSW / XP hooks.
-   * - ``numba``
-     - JIT-accelerated child merges inside several DPs (can be disabled where supported).
-
-Related software
-----------------
-
-* **GUI**: optional desktop app in the ``gui/`` folder of the `PaNDA repository <https://github.com/nholtgrefe/panda>`_ (see its README for Tk / install notes).
+**Parallel edges**: Some solvers require a network without parallel arcs. phylozoo may
+merge parallel edges during preprocessing. If you encounter unexpected solver errors,
+check whether your network has parallel arcs.

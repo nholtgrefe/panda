@@ -1,7 +1,8 @@
+:orphan:
+
 All-paths solvers
 =================
 
-Public entry points for **budgeted all-paths maximization**. These are the functions registered on :class:`~phypanda.measure.all_paths.AllPathsDiversity` (``algorithm="nsw_fpt_budget"`` and ``algorithm="esw_fpt"``). Implementation details live in the submodules ``nsw_fpt_budget`` and ``esw_fpt``; they are **not** duplicated here to keep a single documentation target per function.
+.. note::
 
-.. automodule:: phypanda.measure.all_paths_solvers
-   :members:
+   The all-paths solver reference has moved to :doc:`all_paths`.

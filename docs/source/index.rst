@@ -1,36 +1,51 @@
 phypanda
 ========
 
-**phypanda** is the Python library for **PaNDA** — *efficient optimization of phylogenetic diversity in phylogenetic networks*. It works on **directed** phylogenetic networks represented in `phylozoo <https://pypi.org/project/phylozoo/>`_, and uses **scanwidth** (`scanwidth <https://pypi.org/project/scanwidth/>`_) to obtain tree extensions and run fixed-parameter tractable dynamic programs for several budgeted problems.
+**Welcome to the phypanda docs!**
 
-What you can do here
---------------------
+phypanda is the Python package corresponding to the PaNDA algorithm suite for computing and optimizing phylogenetic diversity (PD)
+in directed phylogenetic networks. It works on networks represented by `PhyloZoo
+<https://github.com/nholtgrefe/phylozoo>`_, uses `scanwidth <https://github.com/nholtgrefe/scanwidth>`_
+to compute tree extensions, and provides fixed-parameter tractable algorithms for several
+budgeted PD problems. For definitions and proofs, see the references below.
 
-* **Score** a chosen set of taxa under different PD notions (**all-paths** / MAPPD, **max-tree**, **min-tree**, and stubs for tree-only, network, and average-tree measures).
-* **Optimize** under an integer **budget** with taxon **costs** (notably MAPPD via node-scanwidth FPT, max-tree PD, and greedy / generic wrappers).
-* Provide a **precomputed tree extension** (e.g. from NSW / XP ordering) so repeated solves on the same network avoid rescanning.
+You can score a set of taxa under different PD measures — all-paths (MAPPD), max-tree, and
+min-tree — optimize under an integer budget with taxon costs, and supply precomputed tree
+extensions to speed up repeated solves on the same network.
 
-The algorithms and objective definitions are those in the PaNDA paper; this site focuses on **how to run the code**. For definitions and proofs, see the reference below.
+Documentation Overview
+-----------------------
 
-Where to read next
-------------------
+A good starting point is either the :doc:`Installation <installation>` page or the
+:doc:`Manual <quickstart>` guide.
 
 .. toctree::
    :maxdepth: 2
-   :caption: User guide
+   :caption: Contents
 
    installation
    quickstart
    api/index
 
-Paper and citation
+Indices and tables
 ------------------
 
-If you use this software, please cite:
+* :ref:`genindex` — index of all functions and classes.
+* :ref:`modindex` — index of all modules.
+* :ref:`search` — search the documentation.
 
-   **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**  
-   *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*  
-   bioRxiv, 2025.  
-   https://doi.org/10.1101/2025.11.14.688467
+Citation
+--------
 
-The `repository README <https://github.com/nholtgrefe/panda>`_ links the **GUI**, **experiment scripts** (under ``experiments/``), and supplementary datasets for the first MAPPD study (``experiments/MAPPD/``) and budgeted benchmarks (``experiments/budgeted_PD/``).
+If you use this package in research, please cite:
+
+   Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, and Jannik Schestag.
+   *PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.*
+   bioRxiv, 2025. doi:
+   `10.1101/2025.11.14.688467 <https://doi.org/10.1101/2025.11.14.688467>`_.
+
+If your work builds specifically on the budgeted node-scanwidth algorithms, pleasealso cite:
+
+   Niels Holtgrefe and Jannik Schestag.
+   *Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth.*
+   2026.

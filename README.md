@@ -57,15 +57,16 @@ Installation, quickstart, measure overview, and full API reference:
 
 ## Citation
 
-If you use **phypanda** or this repository, please cite the main PaNDA paper:
+If you use **phypanda**, please cite the main PaNDA paper:
 
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**  
 > *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*  
 > bioRxiv, 2025. doi: [10.1101/2025.11.14.688467](https://www.biorxiv.org/content/10.1101/2025.11.14.688467)
 
-Several **additional budgeted algorithms** (notably node-scanwidth FPT formulations for phylogenetic diversity on networks) are described in:
+Several additional budgeted algorithms are described in:
 
-> **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks using Node-Scanwidth.**  
+> **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth.**  
 > *Niels Holtgrefe and Jannik Schestag.*
+> 2026.
 
-Cite this second reference when your work builds specifically on those node-scanwidth optimization results.
+Cite this second reference when your work builds specifically on those algorithms.
