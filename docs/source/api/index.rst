@@ -1,7 +1,9 @@
 API reference
 =============
 
-Docstrings are defined **once** per module below. Import everything from the top level as usual (``import phypanda as pp``); this page maps names to the detailed sections—there is **no** separate duplicate "package" autodoc page.
+Docstrings are defined **once** per module below. Import everything from the
+top level as usual (``import phypanda as pp``); this page maps names to the
+detailed sections.
 
 .. list-table:: Where to find what
    :widths: 35 65
@@ -13,14 +15,8 @@ Docstrings are defined **once** per module below. Import everything from the top
      - :doc:`base`
    * - ``DiversityMeasure`` protocol
      - :doc:`protocol`
-   * - ``all_paths``, ``AllPathsDiversity``, ``solve_esw_fpt``, ``solve_nsw_fpt_budget``
-     - :doc:`all_paths`
-   * - ``max_tree``, ``MaxTreeDiversity``
-     - :doc:`max_tree`
-   * - ``min_tree``, ``MinTreeDiversity``, ``prune_to_taxa``, ``adapt_tree_extension_for_pruned_network``
-     - :doc:`min_tree`
-   * - ``tree``, ``network``, ``average_tree`` stubs
-     - :doc:`tree`, :doc:`network`, :doc:`average_tree`
+   * - ``all_paths``, ``max_tree``, ``min_tree`` — measure singletons and solvers
+     - :doc:`measures`
 
 .. toctree::
    :maxdepth: 2
@@ -28,9 +24,4 @@ Docstrings are defined **once** per module below. Import everything from the top
 
    base
    protocol
-   all_paths
-   max_tree
-   min_tree
-   tree
-   network
-   average_tree
+   measures

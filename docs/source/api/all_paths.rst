@@ -1,5 +1,5 @@
-All-paths (MAPD) measure
-========================
+All-paths PD (MAPPD)
+====================
 
 .. automodule:: phypanda.measure.all_paths
    :members:

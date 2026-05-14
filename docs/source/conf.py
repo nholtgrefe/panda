@@ -33,8 +33,14 @@ templates_path = ["_templates"]
 exclude_patterns: list[str] = []
 
 html_theme = "pydata_sphinx_theme"
-html_title = "phypanda"
+html_title = "PaNDA"
 html_theme_options = {
+    "logo": {
+        "image_light": "_static/phypanda_icon.svg",
+        "image_dark": "_static/phypanda_icon.svg",
+        "text": "phypanda",
+        "alt_text": "phypanda",
+    },
     "icon_links": [
         {
             "name": "GitHub",
