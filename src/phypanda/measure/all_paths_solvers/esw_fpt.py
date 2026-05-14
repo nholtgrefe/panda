@@ -340,8 +340,8 @@ def solve_esw_fpt(
     Examples
     --------
     >>> import phypanda as pp
-    >>> # value, taxa = pp.all_paths.solve_maximization(
-    ... #     network, budget=5, algorithm="esw_fpt"
+    >>> # value, taxa = pp.solve_max_diversity(
+    ... #     network, budget=5, measure=pp.all_paths, algorithm="esw_fpt"
     ... # )
     """
     if budget < 0:

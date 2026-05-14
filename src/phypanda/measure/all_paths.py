@@ -60,7 +60,7 @@ class AllPathsDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # value = pp.all_paths.compute_diversity(network, {"a", "b"})
+    >>> # value = pp.compute_diversity(network, {"a", "b"}, measure=pp.all_paths)
     """
 
     _ALGORITHM_REGISTRY = {
@@ -94,7 +94,7 @@ class AllPathsDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # value = pp.all_paths.compute_diversity(network, {"a", "b"})
+        >>> # value = pp.compute_diversity(network, {"a", "b"}, measure=pp.all_paths)
         """
         return _all_paths_diversity_for_taxa(network, taxa)
 
@@ -136,8 +136,8 @@ class AllPathsDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # value, taxa = pp.all_paths.solve_maximization(network, budget=5)
-        >>> # value2, taxa2 = pp.all_paths.solve_maximization(
+        >>> # value, taxa = pp.solve_max_diversity(network, budget=5, measure=pp.all_paths)
+        >>> # value2, taxa2 = pp.solve_max_diversity(
         ... #     network, budget=5, algorithm="esw_fpt", tree_extension=None
         ... # )
         """

@@ -15,7 +15,7 @@ class AverageTreeDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # pp.average_tree.compute_diversity(network, {"a"})
+    >>> # pp.compute_diversity(network, {"a"}, measure=pp.average_tree)
     """
 
     def compute_diversity(

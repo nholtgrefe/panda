@@ -15,7 +15,7 @@ class NetworkDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # pp.network.compute_diversity(network, {"a"})
+    >>> # pp.compute_diversity(network, {"a"}, measure=pp.network)
     """
 
     def compute_diversity(

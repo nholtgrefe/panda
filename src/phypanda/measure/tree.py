@@ -15,7 +15,7 @@ class TreeDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # pp.tree.compute_diversity(network, {"a"})
+    >>> # pp.compute_diversity(network, {"a"}, measure=pp.tree)
     """
 
     def compute_diversity(

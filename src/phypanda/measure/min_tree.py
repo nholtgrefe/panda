@@ -285,7 +285,7 @@ class MinTreeDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # pp.min_tree.compute_diversity(network, {"a"})
+    >>> # pp.compute_diversity(network, {"a"}, measure=pp.min_tree)
     """
 
     def compute_diversity(
@@ -320,7 +320,7 @@ class MinTreeDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # pp.min_tree.compute_diversity(network, {"a", "b"})  # doctest: +SKIP
+        >>> # pp.compute_diversity(network, {"a", "b"}, measure=pp.min_tree)  # doctest: +SKIP
         """
         taxa_set = set(taxa)
         working_network = prune_to_taxa(network, taxa_set)
@@ -370,7 +370,7 @@ class MinTreeDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # pp.min_tree.solve_maximization(network, budget=5)  # doctest: +SKIP
+        >>> # pp.solve_max_diversity(network, budget=5, measure=pp.min_tree)  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MinTreeDiversity.solve_maximization is not implemented yet."

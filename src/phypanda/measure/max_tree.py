@@ -324,7 +324,7 @@ class MaxTreeDiversity:
     Examples
     --------
     >>> import phypanda as pp
-    >>> # pp.max_tree.compute_diversity(network, {"a"})
+    >>> # pp.compute_diversity(network, {"a"}, measure=pp.max_tree)
     """
 
     def compute_diversity(
@@ -353,7 +353,7 @@ class MaxTreeDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # pp.max_tree.compute_diversity(network, {"a", "b"})  # doctest: +SKIP
+        >>> # pp.compute_diversity(network, {"a", "b"}, measure=pp.max_tree)  # doctest: +SKIP
         """
         raise PhyloZooNotImplementedError(
             "MaxTreeDiversity.compute_diversity is not implemented yet."
@@ -381,7 +381,7 @@ class MaxTreeDiversity:
         Examples
         --------
         >>> import phypanda as pp
-        >>> # pp.max_tree.solve_maximization(network, budget=5)  # doctest: +SKIP
+        >>> # pp.solve_max_diversity(network, budget=5, measure=pp.max_tree)  # doctest: +SKIP
         """
         if budget < 0:
             raise PhyloZooValueError(f"budget must be non-negative, got {budget}")

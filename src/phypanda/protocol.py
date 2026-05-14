@@ -16,10 +16,8 @@ class DiversityMeasure(Protocol):
 
     Notes
     -----
-    Concrete measures expose two operations:
-
-    - ``compute_diversity`` for scoring a fixed taxon set.
-    - ``solve_maximization`` for selecting taxa under a budget.
+    Concrete measures implement the operations that the public helpers in
+    :mod:`phypanda.base` call on their behalf.
     """
 
     def compute_diversity(
@@ -47,7 +45,7 @@ class DiversityMeasure(Protocol):
 
         Examples
         --------
-        >>> # measure.compute_diversity(network, {"a", "b"})
+        >>> # value = pp.compute_diversity(network, {"a", "b"}, measure=pp.all_paths)
         """
         ...
 
@@ -84,7 +82,7 @@ class DiversityMeasure(Protocol):
 
         Examples
         --------
-        >>> # measure.solve_maximization(network, budget=5)
+        >>> # value, taxa = pp.solve_max_diversity(network, budget=5, measure=pp.all_paths)
         """
         raise PhyloZooNotImplementedError(
             "This measure does not implement custom optimization."
