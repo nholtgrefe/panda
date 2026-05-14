@@ -4,69 +4,57 @@
 
 # phypanda
 
-**phypanda** is the Python library for **PaNDA** — phylogenetic diversity optimization on **directed phylogenetic networks**. It builds on [phylozoo](https://pypi.org/project/phylozoo/) for networks and [scanwidth](https://pypi.org/project/scanwidth/) for node- and edge-scanwidth–based dynamic programs, including budgeted **maximum all-paths diversity (MAPD)** and related max-tree / min-tree objectives.
+<img src="docs/source/_static/phypanda_full.svg" alt="phypanda logo" width="200" align="right">
 
-## Key features
+phypanda is the Python library for **PaNDA**—an algorithm library for phylogenetic diversity (PD)
+optimization on directed phylogenetic networks. It builds on
+[phylozoo](https://github.com/nholtgrefe/phylozoo) for network representations and
+[scanwidth](https://github.com/nholtgrefe/scanwidth) for node- and edge-scanwidth–based
+dynamic programming.
 
-- **All-paths (MAPD)**: fixed-set scoring and budgeted maximization via **node-scanwidth FPT** (`nsw_fpt_budget`) and **edge-scanwidth FPT** (`esw_fpt`), with optional precomputed tree extensions.
-- **Max-tree and min-tree PD**: budgeted max-tree PD and fixed-set min-tree PD using node-scanwidth DPs (Numba-accelerated merges where applicable).
-- **High-level API**: `diversity`, `marginal_diversities`, `greedy_max_diversity`, `solve_max_diversity` dispatching over measure implementations.
-- **GUI**: optional desktop interface for interactive exploration — see the [`gui/`](https://github.com/nholtgrefe/panda/tree/main/gui) folder.
+<br>
+
+## Key Features
+
+- **All-paths (MAPPD), Max-tree and Min-tree PD**: compute the diversity score of a fixed taxon set for several PD measures, or maximize PD using exact FPT algorithms parameterized by node scanwidth or edge scanwidth.
+- **Budgeted maximization**: assign integer costs to taxa and maximize PD under budget constraints.
+- **JIT-compilation**: speed up algorithms by optional `numba` JIT compilation.
+- **High-level API** — `compute_diversity`, `marginal_diversities`, `greedy_max_diversity`, and `solve_max_diversity` work with any measure and dispatch to the appropriate solver.
 
 ## Installation
-
-Install the package from PyPI:
 
 ```bash
 pip install phypanda
 ```
 
-From a local clone (editable install):
+Runtime dependencies (`phylozoo`, `networkx`, `scanwidth`, `numba`) are installed automatically. For development or documentation extras:
 
 ```bash
-pip install -e .
+pip install phypanda[dev]   # testing
+pip install phypanda[docs]  # Sphinx documentation
 ```
-
-Optional extras:
-
-```bash
-# development (pytest)
-pip install phypanda[dev]
-
-# build the Sphinx documentation
-pip install phypanda[docs]
-```
-
-Runtime dependencies (installed automatically) include `phylozoo`, `networkx`, `scanwidth`, and `numba`. Several solvers require networks **without parallel edges**; see the documentation.
 
 ## Documentation
 
-Installation, quickstart, measure overview, and full API reference:
-
-**[https://nholtgrefe.github.io/panda/](https://nholtgrefe.github.io/panda/)**
-
-*(Site is deployed from this repository; if a page is not live yet, build locally with `pip install -e ".[docs]"` and `sphinx-build -b html docs/source docs/build/html` — see `docs/README.md`.)*
-
-**Maintainers:** publishing to PyPI and deploying docs use separate GitHub Actions workflows on a **`v*`** tag (docs can also be run manually); see [`RELEASING.md`](RELEASING.md).
-
-## Using PaNDA beyond the library
-
-- **GUI**: [gui/README.md](https://github.com/nholtgrefe/panda/tree/main/gui) — screenshots and Tk-based workflow.
-- **Example network**: Xiphophorus eNewick in [`experiments/MAPPD/exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/experiments/MAPPD/exp2_xiphophorus_network.txt).
-- **Experiments & data**: [experiments/](https://github.com/nholtgrefe/panda/tree/main/experiments) — MAPPD simulation materials under [`experiments/MAPPD/`](https://github.com/nholtgrefe/panda/tree/main/experiments/MAPPD), budgeted PD benchmarks under [`experiments/budgeted_PD/`](https://github.com/nholtgrefe/panda/tree/main/experiments/budgeted_PD).
+For the full manual, API reference, and installation guide, visit the **[phypanda docs](https://nholtgrefe.github.io/panda/)**.
 
 ## Citation
 
-If you use **phypanda**, please cite the main PaNDA paper:
+If you use phypanda, please cite:
 
-> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**  
-> *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*  
-> bioRxiv, 2025. doi: [10.1101/2025.11.14.688467](https://www.biorxiv.org/content/10.1101/2025.11.14.688467)
+> Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, and Jannik Schestag.
+> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**
+> *bioRxiv*, 2025. doi: [10.1101/2025.11.14.688467](https://doi.org/10.1101/2025.11.14.688467)
 
-Several additional budgeted algorithms are described in:
+If your work builds specifically on the budgeted node-scanwidth algorithms, please also cite:
 
-> **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth.**  
-> *Niels Holtgrefe and Jannik Schestag.*
+> Niels Holtgrefe and Jannik Schestag.
+> **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth.**
 > 2026.
 
-Cite this second reference when your work builds specifically on those algorithms.
+
+## See also
+
+For the graphical-user interface developed for the first paper, please go to [`gui/`](https://github.com/nholtgrefe/panda/tree/main/gui). 
+
+For the experimental materials corresponding to the above two papers, please go to [`experiments/`](https://github.com/nholtgrefe/panda/tree/main/experiments).
