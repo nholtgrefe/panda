@@ -2,8 +2,8 @@
 XP node-scanwidth on PhyloZoo networks and batch export of optimal extensions.
 
 CSV eNewick cells are parsed with :meth:`~phylozoo.utils.io.IOMixin.from_string`
-(default format ``enewick``). Output ``extension.csv`` uses space-separated columns
-(like ``nonbinary_nets.csv``); the ``extension`` field is one column whose value is
+(default format ``enewick``). Output ``extensions_nodewidth.csv`` uses space-separated columns
+(like ``networks.csv``); the ``extension`` field is one column whose value is
 the vertex order as comma-separated PhyloZoo labels (taxa and internal names).
 """
 
@@ -72,10 +72,10 @@ def optimize_nsw(
 
 
 def _run_nonbinary_extensions_csv() -> None:
-    """Read ``nonbinary_nets.csv`` and write ``extension.csv`` with XP NSW results."""
+    """Read ``networks.csv`` and write ``extensions_nodewidth.csv`` with XP NSW results."""
     base = Path(__file__).resolve().parent
-    src = base / "nonbinary_nets.csv"
-    dst = base / "extension.csv"
+    src = base / "networks.csv"
+    dst = base / "extensions_nodewidth.csv"
 
     with src.open(encoding="utf-8") as f_in, dst.open(
         "w", encoding="utf-8", newline=""

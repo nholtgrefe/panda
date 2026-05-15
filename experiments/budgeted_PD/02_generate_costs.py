@@ -1,5 +1,5 @@
 """
-Assign random integer taxon costs (lognormal) for networks listed in ``nonbinary_nets.csv``.
+Assign random integer taxon costs (lognormal) for networks listed in ``networks.csv``.
 
 Networks are parsed with PhyloZoo's extended-Newick reader
 (:meth:`phylozoo.DirectedPhyNetwork.from_string`; there is no separate
@@ -75,9 +75,9 @@ def _read_network_rows(csv_path: Path) -> list[tuple[str, str]]:
 
 
 def main() -> None:
-    """Build ``costs.csv`` for every network in ``nonbinary_nets.csv``."""
+    """Build ``costs.csv`` for every network in ``networks.csv``."""
     here = Path(__file__).resolve().parent
-    nets_path = here / "nonbinary_nets.csv"
+    nets_path = here / "networks.csv"
     out_path = here / "costs.csv"
 
     rng = np.random.default_rng()

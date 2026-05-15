@@ -1,12 +1,10 @@
 # Experiments
 
-This directory holds **reproducibility materials** tied to publications and larger empirical runs: datasets, helper scripts, and benchmark outputs.
+This folder contains the materials needed to reproduce the experiments in the two papers supporting the phypanda software.
 
-## Layout
+## Papers and folders
 
-| Path | Contents |
-|------|----------|
-| [`MAPPD/`](MAPPD/) | Supplementary material for the first **PaNDA** paper (MAPD simulations, Xiphophorus network, R/Python drivers). See [`MAPPD/README.md`](MAPPD/README.md). |
-| [`budgeted_PD/`](budgeted_PD/) | **Budgeted** PD benchmarks: contracted networks, costs, NSW orderings, and timing scripts for all-paths (NSW FPT), max-tree, and min-tree measures. See [`budgeted_PD/README.md`](budgeted_PD/README.md). |
+- **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks** -> [`MAPPD/`](MAPPD/)
+- **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth** -> [`budgeted_PD/`](budgeted_PD/)
 
-The core library implementation remains under `src/phypanda/`. Run scripts with `PYTHONPATH` pointing at `src` (or an installed `phypanda` package) as described in each subfolder’s README.
+See each subfolder README for the specific descriptions of the data and scripts.

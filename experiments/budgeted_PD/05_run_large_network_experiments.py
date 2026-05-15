@@ -5,7 +5,7 @@ run all-paths (NSW FPT), MaxTree PD, and MinTree PD.
 For each of N_TRIALS trials:
   - Randomly sample N_NETWORKS_PER_TRIAL network IDs from [4801, 6400] with
     replacement (IDs formatted as 5-digit strings, e.g. "05312").
-  - Load each sub-network from ``nonbinary_nets.csv``.
+  - Load each sub-network from ``networks.csv``.
   - Merge them by identifying all sub-network roots into a single shared root
     vertex (no super-root is added).  Taxa are relabeled with a unique prefix
     to prevent collisions across sub-networks.
@@ -15,14 +15,13 @@ For each of N_TRIALS trials:
     full taxon set (MinTree).
 
 Prints per-trial results plus summary statistics (mean, median, mode, std)
-and writes all results to ``large_network_results.csv`` in this directory.
+and writes all results to ``results_large_networks.csv`` in this directory.
 """
 
 from __future__ import annotations
 
 import csv
 import statistics
-import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -32,23 +31,7 @@ from phylozoo import DirectedPhyNetwork
 from phylozoo.core.network.dnetwork.classifications import level as net_level
 from scanwidth import DAG, node_scanwidth
 
-
-def _repo_root() -> Path:
-    p = Path(__file__).resolve().parent
-    for _ in range(8):
-        if (p / "src" / "phypanda").is_dir():
-            return p
-        if p.parent == p:
-            break
-        p = p.parent
-    raise RuntimeError("Cannot find repository root.")
-
-
-_ROOT = _repo_root()
-if str(_ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(_ROOT / "src"))
-
-import phypanda as pp  # noqa: E402
+import phypanda as pp
 
 # ── Parameters ────────────────────────────────────────────────────────────────
 N_TRIALS: int = 20
@@ -177,7 +160,7 @@ def _fieldnames() -> list[str]:
     # time_te    = wall-clock seconds for to_canonical_tree_extension conversion
     # nsw_value  = integer node scanwidth of the combined network
     # costs and newick are placed last; newick is the free-form trailing field
-    # (same convention as nonbinary_nets.csv).
+    # (same convention as networks.csv).
     cols = ["network_ids", "n_taxa", "tot_cost", "level", "nsw_value",
             "time_nsw", "time_te"]
     for tag in _BUDGET_TAGS:
@@ -195,8 +178,8 @@ def _numeric_fieldnames(fieldnames: list[str]) -> list[str]:
 
 def main() -> None:
     here = Path(__file__).resolve().parent
-    nets_path = here / "nonbinary_nets.csv"
-    out_path = here / "large_network_results.csv"
+    nets_path = here / "networks.csv"
+    out_path = here / "results_large_networks.csv"
     rng = np.random.default_rng(RNG_SEED)
     fieldnames = _fieldnames()
     numeric_cols = _numeric_fieldnames(fieldnames)
@@ -211,14 +194,14 @@ def main() -> None:
     _wcosts = {t: 1 for t in _wtaxa}
     _wtotal = sum(_wcosts.values())
     _wbudget = max(0, min(_wtotal, int(round(0.50 * _wtotal))))
-    pp.all_paths.solve_maximization(
+    pp.solve_max_diversity(
         _wnet, budget=_wbudget, costs=_wcosts,
-        algorithm="nsw_fpt_budget", tree_extension=_wte, numba=True,
+        measure=pp.all_paths, algorithm="nsw_fpt_budget", tree_extension=_wte, numba=True,
     )
-    pp.max_tree.solve_maximization(
-        _wnet, budget=_wbudget, costs=_wcosts, tree_extension=_wte, numba=True,
+    pp.solve_max_diversity(
+        _wnet, budget=_wbudget, costs=_wcosts, measure=pp.max_tree, tree_extension=_wte, numba=True,
     )
-    pp.min_tree.compute_diversity(_wnet, set(_wtaxa), tree_extension=_wte)
+    pp.compute_diversity(_wnet, set(_wtaxa), measure=pp.min_tree, tree_extension=_wte)
     print("Warmup done.\n", flush=True)
 
     all_rows: list[dict[str, Any]] = []
@@ -282,9 +265,9 @@ def main() -> None:
             # ── all-paths NSW FPT solver ──────────────────────────────────
             for tag, budget in zip(_BUDGET_TAGS, budgets):
                 t0 = time.perf_counter()
-                v, _ = pp.all_paths.solve_maximization(
+                v, _ = pp.solve_max_diversity(
                     combined, budget=budget, costs=costs,
-                    algorithm="nsw_fpt_budget", tree_extension=te, numba=True,
+                    measure=pp.all_paths, algorithm="nsw_fpt_budget", tree_extension=te, numba=True,
                 )
                 dt = time.perf_counter() - t0
                 row[f"time_ap_{tag}"] = f"{dt:.9f}"
@@ -294,9 +277,9 @@ def main() -> None:
             # ── MaxTree PD (upper bound via largest spanning tree) ────────
             for tag, budget in zip(_BUDGET_TAGS, budgets):
                 t0 = time.perf_counter()
-                v, _ = pp.max_tree.solve_maximization(
+                v, _ = pp.solve_max_diversity(
                     combined, budget=budget, costs=costs,
-                    tree_extension=te, numba=True,
+                    measure=pp.max_tree, tree_extension=te, numba=True,
                 )
                 dt = time.perf_counter() - t0
                 row[f"time_mxt_{tag}"] = f"{dt:.9f}"
@@ -305,7 +288,7 @@ def main() -> None:
 
             # ── MinTree PD (lower bound via smallest spanning tree) ───────
             t0 = time.perf_counter()
-            v = pp.min_tree.compute_diversity(combined, set(taxa), tree_extension=te)
+            v = pp.compute_diversity(combined, set(taxa), measure=pp.min_tree, tree_extension=te)
             dt = time.perf_counter() - t0
             row["time_mnt_full"] = f"{dt:.9f}"
             row["val_mnt_full"] = f"{float(v):.17g}"

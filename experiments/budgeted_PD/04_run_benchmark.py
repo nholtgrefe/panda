@@ -1,8 +1,8 @@
 """
-Benchmark PaNDA all-paths (NSW FPT), MaxTree PD, and MinTree PD on ``nonbinary_nets.csv``.
+Benchmark PaNDA all-paths (NSW FPT), MaxTree PD, and MinTree PD on ``networks.csv``.
 
-Reads ``extension.csv`` and ``costs.csv`` alongside ``nonbinary_nets.csv``.  Networks
-are processed in **level order** (all ``level`` 0 from ``nonbinary_nets.csv``, then
+Reads ``extensions_nodewidth.csv`` and ``costs.csv`` alongside ``networks.csv``.  Networks
+are processed in **level order** (all ``level`` 0 from ``networks.csv``, then
 level 1, …); within a level, by ``id``.  One row per network (space-delimited
 columns) with prep times plus each algorithm run time and objective value.
 
@@ -10,34 +10,16 @@ Budgets for all-paths and MaxTree: ``25%``, ``50%``, and ``90%`` of total taxon 
 (each ``round(fraction * total_taxon_cost)``, clamped to ``[0, total]``).  MinTree PD
 uses the full taxon set.
 
-Output path: ``algorithm_benchmark_results.csv`` in the same directory as this script.
+Output path: ``results_benchmark.csv`` in the same directory as this script.
 """
 
 from __future__ import annotations
 
 import csv
 import re
-import sys
 import time
 from pathlib import Path
 from typing import Any
-
-
-def _repo_root() -> Path:
-    """Walk up from this file until ``src/phypanda`` exists."""
-    p = Path(__file__).resolve().parent
-    for _ in range(8):
-        if (p / "src" / "phypanda").is_dir():
-            return p
-        if p.parent == p:
-            break
-        p = p.parent
-    raise RuntimeError("Cannot find repository root (expected src/phypanda).")
-
-
-_ROOT = _repo_root()
-if str(_ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(_ROOT / "src"))
 
 import phypanda as pp
 from phylozoo import DirectedPhyNetwork
@@ -136,11 +118,11 @@ def _wide_fieldnames() -> list[str]:
 
 
 def main() -> None:
-    """Process every network and write ``algorithm_benchmark_results.csv`` beside this file."""
+    """Process every network and write ``results_benchmark.csv`` beside this file."""
     here = Path(__file__).resolve().parent
-    nets_path = here / "nonbinary_nets.csv"
-    out_path = here / "algorithm_benchmark_results.csv"
-    extension_map = _load_extension_map(here / "extension.csv")
+    nets_path = here / "networks.csv"
+    out_path = here / "results_benchmark.csv"
+    extension_map = _load_extension_map(here / "extensions_nodewidth.csv")
     costs_map = _load_costs_map(here / "costs.csv")
     fieldnames = _wide_fieldnames()
     networks_sorted = _load_rows_sorted_by_level(nets_path)
@@ -154,14 +136,14 @@ def main() -> None:
     _wcosts = {t: int(costs_map[_wid].get(t, 1)) for t in set(_wnet.taxa)}
     _wtotal = sum(_wcosts.values())
     _wbudget = max(0, min(_wtotal, int(round(0.50 * _wtotal))))
-    pp.all_paths.solve_maximization(
+    pp.solve_max_diversity(
         _wnet, budget=_wbudget, costs=_wcosts,
-        algorithm="nsw_fpt_budget", tree_extension=_wte, numba=True,
+        measure=pp.all_paths, algorithm="nsw_fpt_budget", tree_extension=_wte, numba=True,
     )
-    pp.max_tree.solve_maximization(
-        _wnet, budget=_wbudget, costs=_wcosts, tree_extension=_wte, numba=True,
+    pp.solve_max_diversity(
+        _wnet, budget=_wbudget, costs=_wcosts, measure=pp.max_tree, tree_extension=_wte, numba=True,
     )
-    pp.min_tree.compute_diversity(_wnet, set(_wnet.taxa), tree_extension=_wte)
+    pp.compute_diversity(_wnet, set(_wnet.taxa), measure=pp.min_tree, tree_extension=_wte)
     print("Warmup done.", flush=True)
 
     n_done = 0
@@ -201,10 +183,11 @@ def main() -> None:
 
             for tag, budget in zip(_BUDGET_TAGS, budgets):
                 t0 = time.perf_counter()
-                v, _ = pp.all_paths.solve_maximization(
+                v, _ = pp.solve_max_diversity(
                     network,
                     budget=budget,
                     costs=costs_full,
+                    measure=pp.all_paths,
                     algorithm="nsw_fpt_budget",
                     tree_extension=te,
                     numba=True,
@@ -215,10 +198,11 @@ def main() -> None:
 
             for tag, budget in zip(_BUDGET_TAGS, budgets):
                 t0 = time.perf_counter()
-                v, _ = pp.max_tree.solve_maximization(
+                v, _ = pp.solve_max_diversity(
                     network,
                     budget=budget,
                     costs=costs_full,
+                    measure=pp.max_tree,
                     tree_extension=te,
                     numba=True,
                 )
@@ -227,7 +211,7 @@ def main() -> None:
                 row[f"val_mxt_{tag}"] = f"{float(v):.17g}"
 
             t0 = time.perf_counter()
-            v = pp.min_tree.compute_diversity(network, taxa_set, tree_extension=te)
+            v = pp.compute_diversity(network, taxa_set, measure=pp.min_tree, tree_extension=te)
             row["time_mnt_full"] = f"{time.perf_counter() - t0:.9f}"
             row["val_mnt_full"] = f"{float(v):.17g}"
 

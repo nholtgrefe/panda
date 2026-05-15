@@ -133,11 +133,11 @@ def _repo_root() -> Path:
 
 
 def _run_exp1_nonbinary_csv() -> None:
-    """Write ``nonbinary_nets.csv``: exp1 networks after 10% shortest-edge contraction."""
+    """Write ``networks.csv``: exp1 networks after 10% shortest-edge contraction."""
 
     root = _repo_root()
     src = root / "experiments" / "MAPPD" / "exp1_simulated_networks.csv"
-    dst = Path(__file__).resolve().parent / "nonbinary_nets.csv"
+    dst = Path(__file__).resolve().parent / "networks.csv"
 
     with src.open(encoding="utf-8") as f_in, dst.open(
         "w", encoding="utf-8", newline=""
