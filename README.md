@@ -4,7 +4,7 @@
 
 # phypanda
 
-<img src="docs/source/_static/phypanda_full.svg" alt="phypanda logo" width="200" align="right">
+<img src="docs/source/_static/phypanda_full.png" alt="phypanda logo" width="200" align="right">
 
 phypanda is the Python library for **PaNDA**—an algorithm library for phylogenetic diversity (PD)
 optimization on directed phylogenetic networks. It builds on
