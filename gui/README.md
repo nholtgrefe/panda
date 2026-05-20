@@ -1,6 +1,6 @@
 # Graphical User-Interface (GUI) for PaNDA
 
-The **PaNDA-GUI** is a Graphical User-Interface for exploring, visualizing and maximizing all-paths phylogenetic diversity in phylogenetic networks. To test out the GUI, we recommend using the `eNewick` string of the Xiphophorus network in the file  [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/experiments/exp2_xiphophorus_network.txt).
+The **PaNDA-GUI** is a Graphical User-Interface for exploring, visualizing and maximizing all-paths phylogenetic diversity in phylogenetic networks. To test out the GUI, we recommend using the `eNewick` string of the Xiphophorus network in the file  [`exp2_xiphophorus_network.txt`](https://github.com/nholtgrefe/panda/blob/main/experiments/MAPPD/exp2_xiphophorus_network.txt).
 
 
 > **Note**: The PaNDA-GUI was built on the python package phypanda, version 1.0.3. The package has since been extended with additional functionality.
