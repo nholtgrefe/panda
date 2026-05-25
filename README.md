@@ -50,7 +50,7 @@ If your work builds specifically on the budgeted node-scanwidth algorithms, plea
 
 > Niels Holtgrefe and Jannik Schestag.
 > **Tractable Optimization of Budgeted Phylogenetic Diversity on Networks Utilizing Node-Scanwidth.**
-> 2026.
+> *arXiv:*[2605.23319](https://arxiv.org/abs/2605.23319), 2026.
 
 
 ## See also
