@@ -1,5 +1,5 @@
 [![PyPI](https://img.shields.io/pypi/v/phypanda)](https://pypi.org/project/phypanda/)
-[![License](https://img.shields.io/github/license/nholtgrefe/panda)](https://github.com/nholtgrefe/panda/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue)](https://github.com/nholtgrefe/panda/blob/main/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-stable-blue)](https://nholtgrefe.github.io/panda/)
 
 # phypanda
