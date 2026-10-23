@@ -56,6 +56,6 @@ Niels Holtgrefe, Leo van Iersel & Mark Jones. The algorithm either uses an optim
 ## Citation
 If you use the **PaNDA-GUI**, please cite the corresponding paper:
 
-> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks**.
-> *Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, Jannik Schestag.*
-> bioRxiv, 2025. doi: [10.1101/2025.11.14.688467](https://www.biorxiv.org/content/10.1101/2025.11.14.688467)
+> Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, and Jannik Schestag.
+> **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**
+> *Journal of Computational Biology*, 2026. doi: [10.1177/15578666261481955](https://doi.org/10.1177/15578666261481955)

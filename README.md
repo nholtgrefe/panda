@@ -44,7 +44,7 @@ If you use phypanda, please cite:
 
 > Niels Holtgrefe, Leo van Iersel, Ruben Meuwese, Yukihiro Murakami, and Jannik Schestag.
 > **PaNDA: Efficient Optimization of Phylogenetic Diversity in Networks.**
-> *bioRxiv*, 2025. doi: [10.1101/2025.11.14.688467](https://doi.org/10.1101/2025.11.14.688467)
+> *Journal of Computational Biology*, 2026. doi: [10.1177/15578666261481955](https://doi.org/10.1177/15578666261481955)
 
 If your work builds specifically on the budgeted node-scanwidth algorithms, please also cite:
 
