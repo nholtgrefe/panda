@@ -14,7 +14,7 @@ from phylozoo.core.network.dnetwork import DirectedPhyNetwork
 from phylozoo.core.network.dnetwork.classifications import has_parallel_edges
 from phylozoo.utils.exceptions import PhyloZooRuntimeError, PhyloZooValueError
 
-from ...utils import _ChildMergeDP, normalize_costs, powerset
+from ...utils import _ChildMergeDP, branch_length, normalize_costs, powerset
 
 
 class _DPInstance:
@@ -56,7 +56,7 @@ class _DPInstance:
         total_weight = 0.0
         for u, v, _ in self.graph.edges(keys=True):
             self.edge_pairs.append((u, v))
-            total_weight += self.network.get_branch_length(u, v) or 1.0
+            total_weight += branch_length(self.network, u, v)
         self.minus_infinity = -2 * total_weight - 1.0
 
         self.total_cost = sum(self.costs[taxon] for taxon in network.taxa)
@@ -94,7 +94,7 @@ class _DPInstance:
     def _incoming_weight(self, v: Any) -> float:
         """Return sum of weights of all incoming network edges to ``v``."""
         return sum(
-            self.network.get_branch_length(u, v) or 1.0
+            branch_length(self.network, u, v)
             for u, _, _ in self.network.incident_parent_edges(v, keys=True)
         )
 
@@ -184,7 +184,7 @@ class _DPInstance:
             )
         parent = parents[0]
         y_parent = frozenset({parent})
-        edge_weight = self.network.get_branch_length(parent, x) or 1.0
+        edge_weight = branch_length(self.network, parent, x)
         cost_x = self.leaf_cost[x]
 
         for y in powerset(set(self.GW[x])):

@@ -7,7 +7,7 @@ import importlib.metadata
 try:
     release = importlib.metadata.version("phypanda")
 except importlib.metadata.PackageNotFoundError:
-    release = "2.1.1"
+    release = "2.1.2"
 
 project = "phypanda"
 author = "Niels Holtgrefe"

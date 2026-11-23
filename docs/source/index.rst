@@ -34,6 +34,7 @@ A good starting point is either the :doc:`Installation <installation>` page or t
    installation
    manual
    api/index
+   changelog
 
 Indices and tables
 ------------------

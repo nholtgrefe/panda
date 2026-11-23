@@ -20,7 +20,7 @@ from phylozoo.utils.exceptions import (
     PhyloZooValueError,
 )
 
-from ...utils import powerset
+from ...utils import branch_length, powerset
 
 
 class _DPInstance:
@@ -37,7 +37,7 @@ class _DPInstance:
         total_weight = 0.0
         for u, v, _ in self.graph.edges(keys=True):
             self.edge_pairs.append((u, v))
-            total_weight += self.network.get_branch_length(u, v) or 1.0
+            total_weight += branch_length(self.network, u, v)
         self.minus_infinity = -2 * total_weight - 1
 
         # Prefer bulk bag extraction from scanwidth for lower Python overhead.
@@ -58,7 +58,7 @@ class _DPInstance:
 
     def _get_branch_length(self, u: Any, v: Any) -> float:
         """Return branch length on edge ``(u, v)`` with default 1.0."""
-        return self.network.get_branch_length(u, v) or 1.0
+        return branch_length(self.network, u, v)
 
     def _max_edge_offspring_count(self) -> int:
         """Compute maximum leaf edge-offspring count used for pruning."""

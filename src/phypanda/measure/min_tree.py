@@ -19,7 +19,7 @@ from phylozoo.utils.exceptions import (
     PhyloZooValueError,
 )
 
-from ..utils import _ChildMergeDP, powerset
+from ..utils import _ChildMergeDP, branch_length, powerset
 
 
 def prune_to_taxa(
@@ -118,7 +118,7 @@ class _DPInstance:
 
         total_weight = 0.0
         for u, v, _ in self.graph.edges(keys=True):
-            total_weight += self.network.get_branch_length(u, v) or 1.0
+            total_weight += branch_length(self.network, u, v)
         self.plus_infinity = 2 * total_weight + 1.0
 
         self.GW = self._initialize_GW()
@@ -176,7 +176,7 @@ class _DPInstance:
                 f"Leaf {x} must have exactly one parent for the MinTree base case."
             )
         parent = parents[0]
-        edge_weight = self.network.get_branch_length(parent, x) or 1.0
+        edge_weight = branch_length(self.network, parent, x)
 
         for z in powerset(set(self.GW[x])):
             z_frozen = frozenset(z)
@@ -250,7 +250,7 @@ class _DPInstance:
                 best = option1
 
                 for parent in active_parents:
-                    edge_weight = self.network.get_branch_length(parent, v) or 1.0
+                    edge_weight = branch_length(self.network, parent, v)
                     y2_frozen = frozenset((set(y_frozen) - {parent}) | {v})
                     incl_mask = incl_mbs.get(y2_frozen) if incl_mbs is not None else None
                     option2_base = (

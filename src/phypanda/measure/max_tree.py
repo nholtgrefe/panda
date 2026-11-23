@@ -19,7 +19,7 @@ from phylozoo.utils.exceptions import (
     PhyloZooValueError,
 )
 
-from ..utils import _ChildMergeDP, normalize_costs, powerset
+from ..utils import _ChildMergeDP, branch_length, normalize_costs, powerset
 
 
 class _DPInstance:
@@ -46,7 +46,7 @@ class _DPInstance:
         total_weight = 0.0
         for u, v, _ in self.graph.edges(keys=True):
             self.edge_pairs.append((u, v))
-            total_weight += self.network.get_branch_length(u, v) or 1.0
+            total_weight += branch_length(self.network, u, v)
         self.minus_infinity = -2 * total_weight - 1.0
 
         self.total_cost = sum(self.costs[taxon] for taxon in network.taxa)
@@ -153,7 +153,7 @@ class _DPInstance:
             )
         parent = parents[0]
         y_parent = frozenset({parent})
-        edge_weight = self.network.get_branch_length(parent, x) or 1.0
+        edge_weight = branch_length(self.network, parent, x)
         cost_x = self.leaf_cost[x]
 
         for y in powerset(set(self.GW[x])):
@@ -244,7 +244,7 @@ class _DPInstance:
                     option2_base = float(incl_data[parent][0][incl_mask, b])
                     if option2_base <= infeasible:
                         continue
-                    edge_weight = self.network.get_branch_length(parent, v) or 1.0
+                    edge_weight = branch_length(self.network, parent, v)
                     candidate = edge_weight + option2_base
                     if candidate > best_include:
                         best_include = candidate

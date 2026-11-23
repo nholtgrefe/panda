@@ -129,6 +129,30 @@ def powerset(s: set[Any]) -> Iterator[set[Any]]:
             yield set(subset)
 
 
+def branch_length(network: Any, u: Any, v: Any) -> float:
+    """
+    Return the length of the edge ``(u, v)``, or 1.0 if it has no length.
+
+    A length of 0 is kept as 0; only a missing length (``None``) defaults to 1.
+
+    Parameters
+    ----------
+    network : DirectedPhyNetwork
+        Network containing the edge.
+    u : Any
+        Tail of the edge.
+    v : Any
+        Head of the edge.
+
+    Returns
+    -------
+    float
+        Branch length of ``(u, v)``.
+    """
+    length = network.get_branch_length(u, v)
+    return 1.0 if length is None else float(length)
+
+
 def normalize_costs(
     taxa: set[str],
     costs: Mapping[str, int] | None,
