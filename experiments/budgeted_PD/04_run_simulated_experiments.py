@@ -1,8 +1,8 @@
 """
-Benchmark PaNDA all-paths (NSW FPT), MaxTree PD, and MinTree PD on ``networks.csv``.
+Benchmark PaNDA all-paths (NSW FPT), MaxTree PD, and MinTree PD on ``simulated_networks.csv``.
 
-Reads ``extensions_nodewidth.csv`` and ``costs.csv`` alongside ``networks.csv``.  Networks
-are processed in **level order** (all ``level`` 0 from ``networks.csv``, then
+Reads ``simulated_nsw_extensions.csv`` and ``simulated_costs.csv`` alongside ``simulated_networks.csv``.  Networks
+are processed in **level order** (all ``level`` 0 from ``simulated_networks.csv``, then
 level 1, …); within a level, by ``id``.  One row per network (space-delimited
 columns) with prep times plus each algorithm run time and objective value.
 
@@ -12,9 +12,9 @@ uses the full taxon set.
 
 In addition, all-paths is solved with unit taxon costs (every taxon costs 1), with
 budgets ``25%``, ``50%``, and ``90%`` of the number of leaves (rounded). These are
-the instances that are compared with PaNDA (see ``07`` and ``08``).
+the instances that are compared with PaNDA (see ``06`` and ``07``).
 
-Output path: ``results_benchmark.csv`` in the same directory as this script.
+Output path: ``simulated_results.csv`` in the same directory as this script.
 """
 
 from __future__ import annotations
@@ -128,12 +128,12 @@ def _wide_fieldnames() -> list[str]:
 
 
 def main() -> None:
-    """Process every network and write ``results_benchmark.csv`` beside this file."""
+    """Process every network and write ``simulated_results.csv`` beside this file."""
     here = Path(__file__).resolve().parent
-    nets_path = here / "networks.csv"
-    out_path = here / "results_benchmark.csv"
-    extension_map = _load_extension_map(here / "extensions_nodewidth.csv")
-    costs_map = _load_costs_map(here / "costs.csv")
+    nets_path = here / "simulated_networks.csv"
+    out_path = here / "simulated_results.csv"
+    extension_map = _load_extension_map(here / "simulated_nsw_extensions.csv")
+    costs_map = _load_costs_map(here / "simulated_costs.csv")
     fieldnames = _wide_fieldnames()
     networks_sorted = _load_rows_sorted_by_level(nets_path)
 

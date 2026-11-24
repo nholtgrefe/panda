@@ -1,12 +1,12 @@
 """
-Assign random integer taxon costs (lognormal) for networks listed in ``networks.csv``.
+Assign random integer taxon costs (lognormal) for networks listed in ``simulated_networks.csv``.
 
 Networks are parsed with PhyloZoo's extended-Newick reader
 (:meth:`phylozoo.DirectedPhyNetwork.from_string`; there is no separate
 ``phylozoo.load_from_string`` symbol—this class method is the supported I/O entry
 point).  Taxon names come from :attr:`DirectedPhyNetwork.taxa`.
 
-Writes ``costs.csv`` in the same directory: one line per network, space-separated
+Writes ``simulated_costs.csv`` in the same directory: one line per network, space-separated
 ``net_id`` and a concatenated list of ``(taxon,cost)`` pairs.
 
 This script was run with phylozoo version 0.1.2.
@@ -75,10 +75,10 @@ def _read_network_rows(csv_path: Path) -> list[tuple[str, str]]:
 
 
 def main() -> None:
-    """Build ``costs.csv`` for every network in ``networks.csv``."""
+    """Build ``simulated_costs.csv`` for every network in ``simulated_networks.csv``."""
     here = Path(__file__).resolve().parent
-    nets_path = here / "networks.csv"
-    out_path = here / "costs.csv"
+    nets_path = here / "simulated_networks.csv"
+    out_path = here / "simulated_costs.csv"
 
     rng = np.random.default_rng()
     lines_out: list[str] = []

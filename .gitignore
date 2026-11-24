@@ -135,3 +135,6 @@ dmypy.json
 sandbox/
 *.pyc
 *.pyo
+
+# Local plotting scripts and figures for the budgeted PD paper
+experiments/budgeted_PD/plotting/

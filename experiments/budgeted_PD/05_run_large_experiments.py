@@ -5,7 +5,7 @@ run all-paths (NSW FPT), MaxTree PD, and MinTree PD.
 For each of N_TRIALS trials:
   - Randomly sample N_NETWORKS_PER_TRIAL network IDs from [4801, 6400] with
     replacement (IDs formatted as 5-digit strings, e.g. "05312").
-  - Load each sub-network from ``networks.csv``.
+  - Load each sub-network from ``simulated_networks.csv``.
   - Merge them by identifying all sub-network roots into a single shared root
     vertex (no super-root is added).  Taxa are relabeled with a unique prefix
     to prevent collisions across sub-networks.
@@ -15,7 +15,7 @@ For each of N_TRIALS trials:
     full taxon set (MinTree).
 
 Prints per-trial results plus summary statistics (mean, median, mode, std)
-and writes all results to ``results_large_networks.csv`` in this directory.
+and writes all results to ``large_results.csv`` in this directory.
 """
 
 from __future__ import annotations
@@ -160,7 +160,7 @@ def _fieldnames() -> list[str]:
     # time_te    = wall-clock seconds for to_canonical_tree_extension conversion
     # nsw_value  = integer node scanwidth of the combined network
     # costs and newick are placed last; newick is the free-form trailing field
-    # (same convention as networks.csv).
+    # (same convention as simulated_networks.csv).
     cols = ["network_ids", "n_taxa", "tot_cost", "level", "nsw_value",
             "time_nsw", "time_te"]
     for tag in _BUDGET_TAGS:
@@ -178,8 +178,8 @@ def _numeric_fieldnames(fieldnames: list[str]) -> list[str]:
 
 def main() -> None:
     here = Path(__file__).resolve().parent
-    nets_path = here / "networks.csv"
-    out_path = here / "results_large_networks.csv"
+    nets_path = here / "simulated_networks.csv"
+    out_path = here / "large_results.csv"
     rng = np.random.default_rng(RNG_SEED)
     fieldnames = _fieldnames()
     numeric_cols = _numeric_fieldnames(fieldnames)
@@ -231,7 +231,7 @@ def main() -> None:
             # Compute level and newick before the timed section (level can be slow).
             level = net_level(combined)
             newick = combined.to_string()
-            # Costs as compact "(taxon,cost)" pairs, same format as costs.csv.
+            # Costs as compact "(taxon,cost)" pairs, same format as simulated_costs.csv.
             costs_str = "".join(f"({t},{c})" for t, c in sorted(costs.items()))
 
             print(
