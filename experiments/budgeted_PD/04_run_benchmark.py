@@ -10,6 +10,10 @@ Budgets for all-paths and MaxTree: ``25%``, ``50%``, and ``90%`` of total taxon 
 (each ``round(fraction * total_taxon_cost)``, clamped to ``[0, total]``).  MinTree PD
 uses the full taxon set.
 
+In addition, all-paths is solved with unit taxon costs (every taxon costs 1), with
+budgets ``25%``, ``50%``, and ``90%`` of the number of leaves (rounded). These are
+the instances that are compared with PaNDA (see ``07`` and ``08``).
+
 Output path: ``results_benchmark.csv`` in the same directory as this script.
 """
 
@@ -29,12 +33,15 @@ _PAIR_RE = re.compile(r"\(([^,]+),(\d+)\)")
 
 # Short suffixes: b25/b50/b90 = 25% / 50% / 90% of total taxon cost (rounded).
 _BUDGET_TAGS = ("b25", "b50", "b90")
+_BUDGET_FRACTIONS = (0.25, 0.50, 0.90)
 
 # CSV columns in order (space-delimited); keep in sync with ``_wide_fieldnames``:
 #   id, level, tot_cost, time_net, time_ext,
 #   time_ap_b25, val_ap_b25, time_ap_b50, val_ap_b50, time_ap_b90, val_ap_b90,
 #   time_mxt_b25, val_mxt_b25, time_mxt_b50, val_mxt_b50, time_mxt_b90, val_mxt_b90,
-#   time_mnt_full, val_mnt_full
+#   time_mnt_full, val_mnt_full,
+#   time_apu_b25, val_apu_b25, time_apu_b50, val_apu_b50, time_apu_b90, val_apu_b90
+# (apu = all-paths with unit costs).
 
 
 def _load_rows_sorted_by_level(csv_path: Path) -> list[tuple[str, int, str]]:
@@ -114,6 +121,9 @@ def _wide_fieldnames() -> list[str]:
         cols.append(f"time_mxt_{tag}")
         cols.append(f"val_mxt_{tag}")
     cols.extend(["time_mnt_full", "val_mnt_full"])
+    for tag in _BUDGET_TAGS:
+        cols.append(f"time_apu_{tag}")
+        cols.append(f"val_apu_{tag}")
     return cols
 
 
@@ -214,6 +224,25 @@ def main() -> None:
             v = pp.compute_diversity(network, taxa_set, measure=pp.min_tree, tree_extension=te)
             row["time_mnt_full"] = f"{time.perf_counter() - t0:.9f}"
             row["val_mnt_full"] = f"{float(v):.17g}"
+
+            # All-paths with unit costs (budgets are fractions of the number of leaves).
+            unit_costs = {t: 1 for t in taxa_set}
+            n_taxa = len(taxa_set)
+            for tag, frac in zip(_BUDGET_TAGS, _BUDGET_FRACTIONS):
+                budget = max(0, min(n_taxa, int(round(frac * n_taxa))))
+                t0 = time.perf_counter()
+                v, _ = pp.solve_max_diversity(
+                    network,
+                    budget=budget,
+                    costs=unit_costs,
+                    measure=pp.all_paths,
+                    algorithm="nsw_fpt_budget",
+                    tree_extension=te,
+                    numba=True,
+                )
+                dt = time.perf_counter() - t0
+                row[f"time_apu_{tag}"] = f"{dt:.9f}"
+                row[f"val_apu_{tag}"] = f"{float(v):.17g}"
 
             writer.writerow(row)
             n_done += 1

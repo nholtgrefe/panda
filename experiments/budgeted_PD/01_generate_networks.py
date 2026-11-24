@@ -5,7 +5,11 @@ Eligibility (for a directed edge ``(u, v)``): skip if ``v`` is a leaf; skip if
 ``indegree(u) >= 2`` and ``outdegree(v) >= 2``. A contraction is applied only if
 merging ``v`` into ``u`` keeps every internal node in a valid tree/hybrid degree
 class for :class:`~phylozoo.core.network.dnetwork.DirectedPhyNetwork` and does
-not introduce parallel arcs (multiple edges with the same head and tail).
+not introduce parallel arcs (multiple edges with the same head and tail), and
+only if it keeps the blob structure of the network, where a blob is a maximal
+connected subgraph without cut-edges: no two blobs are merged. As a result, the
+level of each contracted network is the same as that of the original binary
+network.
 
 This script was run with phylozoo version 0.1.2.
 """
@@ -18,6 +22,7 @@ from pathlib import Path
 
 import networkx as nx
 from phylozoo.core.network.dnetwork import DirectedPhyNetwork
+from phylozoo.core.network.dnetwork.classifications import level
 from phylozoo.core.network.dnetwork.conversions import dnetwork_from_graph
 from phylozoo.core.primitives.d_multigraph.conversions import (
     multidigraph_to_directedmultigraph,
@@ -44,6 +49,32 @@ def _has_parallel_arcs(graph: nx.MultiDiGraph) -> bool:
     return has_parallel_edges(multidigraph_to_directedmultigraph(graph))
 
 
+def _blob_signature(graph: nx.MultiDiGraph) -> list[int]:
+    """
+    Sorted reticulation numbers of the non-trivial blobs of the network.
+
+    A blob is a maximal connected subgraph without cut-edges (the PhyloZoo
+    definition). The reticulation number of a blob is ``|E| - |V| + 1``.
+    Contracting an edge inside a blob lowers both ``|E|`` and ``|V|`` by one, so
+    the signature only changes if the contraction merges two blobs.
+
+    Returns
+    -------
+    list[int]
+        Reticulation numbers of the blobs, sorted and restricted to values
+        larger than 0.
+    """
+    und = nx.Graph(graph.to_undirected())
+    und.remove_edges_from(list(nx.bridges(und)))
+    blobs: list[int] = []
+    for nodes in nx.connected_components(und):
+        sub = und.subgraph(nodes)
+        r = sub.number_of_edges() - sub.number_of_nodes() + 1
+        if r > 0:
+            blobs.append(r)
+    return sorted(blobs)
+
+
 def _eligible_edges(graph: nx.MultiDiGraph) -> list[tuple[Any, Any, float]]:
     """(u, v, length) for edges that pass the screening rule (one entry per arc)."""
     out: list[tuple[Any, Any, float]] = []
@@ -58,8 +89,17 @@ def _eligible_edges(graph: nx.MultiDiGraph) -> list[tuple[Any, Any, float]]:
     return out
 
 
-def _contract_edge_safe(graph: nx.MultiDiGraph, u: Any, v: Any) -> bool:
-    """Merge ``v`` into ``u`` if some ``(u,v)`` arc exists and the result is valid."""
+def _contract_edge_safe(
+    graph: nx.MultiDiGraph,
+    u: Any,
+    v: Any,
+    signature: list[int],
+) -> bool:
+    """Merge ``v`` into ``u`` if some ``(u,v)`` arc exists and the result is valid.
+
+    The result is valid if it is a directed phylogenetic network without parallel
+    arcs whose blob signature (see :func:`_blob_signature`) equals ``signature``.
+    """
     if not graph.has_edge(u, v) or graph.out_degree(v) == 0:
         return False
     trial = graph.copy()
@@ -69,6 +109,8 @@ def _contract_edge_safe(graph: nx.MultiDiGraph, u: Any, v: Any) -> bool:
     if _has_parallel_arcs(trial):
         return False
     if not _directed_phylo_internal_degrees_ok(trial):
+        return False
+    if _blob_signature(trial) != signature:
         return False
     nx.contracted_nodes(graph, u, v, self_loops=False, copy=False)
     if graph.has_edge(u, u):
@@ -83,8 +125,10 @@ def contract_percent_shortest_edges(
     """
     Contract a percentage of the shortest eligible branches.
 
-    Eligible edges are sorted by ``branch_length`` (default 1 if missing). Up to
-    ``floor(n * percent / 100)`` are attempted in that order; skipped if invalid.
+    Eligible edges are sorted by ``branch_length`` (default 1 if missing) and tried
+    in that order until ``floor(n * percent / 100)`` of them are contracted. An edge
+    is skipped if its contraction is invalid, including if it would change the blob
+    structure of the network (see :func:`_contract_edge_safe`).
 
     Parameters
     ----------
@@ -110,12 +154,13 @@ def contract_percent_shortest_edges(
     eligible = _eligible_edges(graph)
     eligible.sort(key=lambda t: t[2])
     target = int(len(eligible) * percent / 100.0)
+    signature = _blob_signature(graph)
 
     done = 0
     for u, v, _ in eligible:
         if done >= target:
             break
-        if _contract_edge_safe(graph, u, v):
+        if _contract_edge_safe(graph, u, v, signature):
             done += 1
 
     return dnetwork_from_graph(graph)
@@ -158,6 +203,7 @@ def _run_exp1_nonbinary_csv() -> None:
             except Exception as exc:
                 print(f"{net_id}: skipped ({exc})")
                 continue
+            assert level(out) == int(level_s), f"{net_id}: level changed"
             writer.writerow(
                 [net_id, str(len(out.taxa)), level_s, out.to_string()]
             )
